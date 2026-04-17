@@ -1,0 +1,1563 @@
+<!DOCTYPE html>
+<html lang="fr" data-theme="light">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Pharmacie</title>
+<link rel="stylesheet" href="fontawesome/css/all.min.css">
+<link rel="stylesheet" href="style.css">
+<script src="echarts/dist/echarts.min.js"></script>
+</head>
+<body>
+
+<!-- Titlebar Electron -->
+<div class="titlebar" id="titlebar">
+  <div class="titlebar-drag">
+    <span class="titlebar-logo"><i class="fas fa-pills"></i></span>
+    <span class="titlebar-title">Pharmacie</span>
+  </div>
+  <div class="titlebar-controls" id="titlebarControls">
+    <button class="tb-btn tb-minimize" id="tbMinimize" title="Réduire">
+      <svg width="10" height="1" viewBox="0 0 10 1"><rect width="10" height="1" fill="currentColor"/></svg>
+    </button>
+    <button class="tb-btn tb-maximize" id="tbMaximize" title="Agrandir">
+      <svg width="10" height="10" viewBox="0 0 10 10" fill="none"><rect x="0.5" y="0.5" width="9" height="9" stroke="currentColor"/></svg>
+    </button>
+    <button class="tb-btn tb-close" id="tbClose" title="Fermer">
+      <svg width="10" height="10" viewBox="0 0 10 10"><line x1="0" y1="0" x2="10" y2="10" stroke="currentColor" stroke-width="1.2"/><line x1="10" y1="0" x2="0" y2="10" stroke="currentColor" stroke-width="1.2"/></svg>
+    </button>
+  </div>
+</div>
+
+<!-- Sidebar -->
+<aside class="sidebar" id="sidebar">
+  <div class="sidebar-header">
+    <div class="logo"><span class="logo-icon"><i class="fas fa-pills"></i></span><span class="logo-text">Pharmacie</span></div>
+    <button class="sidebar-toggle" id="sidebarToggle" title="Réduire le menu">
+      <span class="hamburger-icon"><span></span><span></span><span></span></span>
+    </button>
+  </div>
+  <nav class="sidebar-nav">
+    <a href="#" class="nav-item active" data-section="dashboard"><span class="nav-icon"><i class="fas fa-tachometer-alt"></i></span><span class="nav-label">Tableau de bord</span></a>
+    <a href="#" class="nav-item" data-section="caisse"><span class="nav-icon"><i class="fas fa-cash-register"></i></span><span class="nav-label">Caisse</span></a>
+    <a href="#" class="nav-item" data-section="patients"><span class="nav-icon"><i class="fas fa-user-injured"></i></span><span class="nav-label">Patients</span></a>
+    <a href="#" class="nav-item" data-section="products"><span class="nav-icon"><i class="fas fa-box"></i></span><span class="nav-label">Produits</span></a>
+    <a href="#" class="nav-item" data-section="categories"><span class="nav-icon"><i class="fas fa-tags"></i></span><span class="nav-label">Catégories</span></a>
+    <a href="#" class="nav-item" data-section="stock"><span class="nav-icon"><i class="fas fa-warehouse"></i></span><span class="nav-label">Stock</span></a>
+    <a href="#" class="nav-item" data-section="sales"><span class="nav-icon"><i class="fas fa-shopping-cart"></i></span><span class="nav-label">Ventes</span></a>
+    <a href="#" class="nav-item" data-section="quotes"><span class="nav-icon"><i class="fas fa-file-invoice"></i></span><span class="nav-label">Devis</span></a>
+    <a href="#" class="nav-item" data-section="returns"><span class="nav-icon"><i class="fas fa-undo-alt"></i></span><span class="nav-label">Retours clients</span></a>
+    <a href="#" class="nav-item" data-section="expenses"><span class="nav-icon"><i class="fas fa-wallet"></i></span><span class="nav-label">Dépenses</span></a>
+    <a href="#" class="nav-item" data-section="reports"><span class="nav-icon"><i class="fas fa-file-alt"></i></span><span class="nav-label">Rapports</span></a>
+    <a href="#" class="nav-item" data-section="whatsapp"><span class="nav-icon"><i class="fab fa-whatsapp"></i></span><span class="nav-label">WhatsApp</span></a>
+    <a href="#" class="nav-item" data-section="audit" id="nav-audit"><span class="nav-icon"><i class="fas fa-history"></i></span><span class="nav-label">Journal d'Audit</span></a>
+    <a href="#" class="nav-item" data-section="corbeille" id="nav-corbeille"><span class="nav-icon"><i class="fas fa-trash-alt"></i></span><span class="nav-label">Corbeille <span id="corbeilleNavBadge" style="display:none;background:var(--danger);color:#fff;font-size:10px;padding:1px 6px;border-radius:10px;margin-left:4px;">0</span></span></a>
+    <a href="#" class="nav-item" data-section="settings"><span class="nav-icon"><i class="fas fa-cog"></i></span><span class="nav-label">Paramètres</span></a>
+  </nav>
+  <div class="sidebar-footer">
+    <button class="theme-toggle" id="logoutBtn" onclick="logout()" title="Déconnexion" style="color:var(--danger); border: 1px solid var(--danger); margin-bottom:10px; width:100%; border-radius:8px; padding:10px; cursor:pointer; background:transparent;"><i class="fas fa-sign-out-alt"></i> Se déconnecter</button>
+    <button class="theme-toggle" id="themeToggle" title="Changer le thème"><i class="fas fa-adjust"></i> Thème</button>
+  </div>
+</aside>
+
+<!-- Main Content -->
+<main class="main-content" id="mainContent">
+  <header class="topbar">
+    <div class="topbar-left">
+      <button class="mobile-menu-btn" id="mobileMenuBtn" title="Menu">
+        <span class="hamburger-icon"><span></span><span></span><span></span></span>
+      </button>
+      <h1 class="page-title" id="pageTitle">Tableau de bord</h1>
+    </div>
+    <div class="topbar-right">
+      <span class="caisse-badge" id="caisseBadge" onclick="navigate('caisse')" title="Solde caisse"><i class="fas fa-coins"></i> <span id="caisseSolde">0 FCFA</span></span>
+      <!-- Contrôles WhatsApp dans la topbar (visibles seulement sur la page WA) -->
+      <div id="waTopbarControls" style="display:none; align-items:center; gap:8px;">
+        <span id="whatsappStatusBadge" class="badge">Vérification...</span>
+        <button class="btn btn-sm btn-outline" onclick="refreshWhatsApp()" title="Actualiser WhatsApp"><i class="fas fa-sync-alt"></i></button>
+        <button class="btn btn-sm btn-danger" onclick="logoutWhatsApp()" title="Déconnexion WhatsApp"><i class="fas fa-sign-out-alt"></i></button>
+      </div>
+      <span class="current-date" id="currentDate"></span>
+      <button class="btn btn-primary" id="topActionBtn" onclick="handleTopAction()" style="display:none">+ Nouveau</button>
+    </div>
+  </header>
+
+  <!-- DASHBOARD -->
+  <section class="section active" id="section-dashboard">
+    <div class="stats-grid">
+      <div class="stat-card" onclick="navigate('products')" style="cursor:pointer">
+        <div class="stat-icon"><i class="fas fa-box"></i></div>
+        <div class="stat-info"><span class="stat-label">Produits</span><span class="stat-value" id="stat-products">0</span></div>
+      </div>
+      <div class="stat-card" onclick="navigate('categories')" style="cursor:pointer">
+        <div class="stat-icon"><i class="fas fa-tags"></i></div>
+        <div class="stat-info"><span class="stat-label">Catégories</span><span class="stat-value" id="stat-categories">0</span></div>
+      </div>
+      <div class="stat-card" onclick="navigate('stock')" style="cursor:pointer">
+        <div class="stat-icon"><i class="fas fa-warehouse"></i></div>
+        <div class="stat-info"><span class="stat-label">En stock</span><span class="stat-value" id="stat-instock">0</span></div>
+      </div>
+      <div class="stat-card danger" onclick="navigate('stock')" style="cursor:pointer">
+        <div class="stat-icon"><i class="fas fa-exclamation-triangle"></i></div>
+        <div class="stat-info"><span class="stat-label">Rupture de stock</span><span class="stat-value" id="stat-outstock">0</span></div>
+      </div>
+      <div class="stat-card success" onclick="navigate('sales')" style="cursor:pointer">
+        <div class="stat-icon"><i class="fas fa-shopping-cart"></i></div>
+        <div class="stat-info"><span class="stat-label">Total ventes</span><span class="stat-value" id="stat-sales">0 FCFA</span></div>
+      </div>
+      <div class="stat-card warning" onclick="navigate('expenses')" style="cursor:pointer">
+        <div class="stat-icon"><i class="fas fa-wallet"></i></div>
+        <div class="stat-info"><span class="stat-label">Total dépenses</span><span class="stat-value" id="stat-expenses">0 FCFA</span></div>
+      </div>
+      <div class="stat-card" style="cursor:pointer; border-left: 4px solid #5ab04e;">
+        <div class="stat-icon" style="color:#5ab04e;"><i class="fas fa-hand-holding-usd"></i></div>
+        <div class="stat-info"><span class="stat-label">Marge Brute</span><span class="stat-value" id="stat-gross-margin">0 FCFA</span></div>
+      </div>
+      <div class="stat-card profit" onclick="navigate('caisse')" style="cursor:pointer">
+        <div class="stat-icon"><i class="fas fa-cash-register"></i></div>
+        <div class="stat-info"><span class="stat-label">Solde caisse</span><span class="stat-value" id="stat-caisse">0 FCFA</span></div>
+      </div>
+    </div>
+    <div class="charts-grid">
+      <div class="chart-card"><h3>Évolution des ventes</h3><div id="salesChart" style="width:100%;height:260px"></div></div>
+      <div class="chart-card"><h3>Produits les plus vendus</h3><div id="topProductsChart" style="width:100%;height:260px"></div></div>
+      <div class="chart-card wide"><h3>Ventes vs Dépenses</h3><div id="salesVsExpensesChart" style="width:100%;height:260px"></div></div>
+    </div>
+    <!-- Journal d'activité -->
+    <div class="activity-card">
+      <div class="activity-header" style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 10px;">
+        <h3 style="margin:0"><i class="fas fa-clipboard-list"></i> Journal d'activité récent</h3>
+        <div style="display: flex; gap: 8px; align-items: center;">
+          <select id="auditUserSelect" class="select-input" style="padding: 4px 8px; font-size: 13px; height: 32px; display: none;" onchange="filterAuditLogByUser(this.value)">
+            <option value="all">Tous les utilisateurs</option>
+          </select>
+          <div class="btn-group" id="auditLogFilters" style="display: flex; gap: 5px;">
+            <button class="btn btn-sm btn-outline active" onclick="filterAuditLog('all', this)" id="btnFilterAll">Tout</button>
+            <button class="btn btn-sm btn-outline" onclick="filterAuditLog('me', this)" id="btnFilterMe">Mes actions</button>
+          </div>
+        </div>
+      </div>
+      <div id="activityFeed" class="activity-feed"></div>
+    </div>
+
+
+    
+    <!-- Alertes Stock (Nouvelle fonctionnalité) -->
+    <div class="activity-card" style="margin-bottom: 20px;">
+      <div class="activity-header">
+        <h3 style="color:var(--danger)"><i class="fas fa-exclamation-triangle"></i> Alertes Stock Faible</h3>
+      </div>
+      <div id="dashboardStockAlerts" class="activity-feed">
+        <div class="trash-empty-state">Aucun produit en rupture ou stock critique.</div>
+      </div>
+    </div>
+    
+    <!-- Statistiques avancées (Ancienne section Statistiques) -->
+    <h3 style="margin: 28px 0 16px; font-size: 16px; color: var(--text);">Statistiques Détaillées</h3>
+    <!-- Évolution des ventes -->
+    <div class="chart-card wide" style="margin-top:20px; margin-bottom:20px; border:1px solid var(--primary-light);">
+      <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:15px; flex-wrap:wrap; gap:10px;">
+        <h3 style="margin:0;">
+          <i class="fas fa-chart-line" style="color:var(--primary)"></i> Évolution des ventes (30 derniers jours)
+          <span id="saleEvolutionStockBadge" style="display:none; margin-left:15px; background:var(--bg2); padding:4px 12px; border-radius:20px; font-size:12px; border:1px solid var(--primary-light); color:var(--text1)">Stock actuel : <strong style="color:var(--primary)">0</strong></span>
+        </h3>
+        <div style="display:flex; align-items:center; gap:8px;">
+          <span style="font-size:12px; color:var(--text3)">Filtrer par :</span>
+          <select id="saleEvolutionProductFilter" class="select-input" style="width:220px; height:36px; font-size:13px;" onchange="renderSaleEvolutionChart()">
+            <option value="all">Tous les produits (CA)</option>
+          </select>
+        </div>
+      </div>
+      <div id="statEvolution" style="width:100%;height:320px"></div>
+    </div>
+
+    <!-- Évolution des entrées de stock -->
+    <div class="chart-card wide" style="margin-top:20px; margin-bottom:20px; border:1px solid var(--info);">
+      <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:15px; flex-wrap:wrap; gap:10px;">
+        <h3 style="margin:0;">
+          <i class="fas fa-warehouse" style="color:var(--info)"></i> Évolution des entrées de stock (30 derniers jours)
+          <span id="stockEvolutionStockBadge" style="display:none; margin-left:15px; background:var(--bg2); padding:4px 12px; border-radius:20px; font-size:12px; border:1px solid var(--info-light); color:var(--text1)">Stock actuel : <strong style="color:var(--info)">0</strong></span>
+        </h3>
+        <div style="display:flex; align-items:center; gap:8px;">
+          <span style="font-size:12px; color:var(--text3)">Filtrer par :</span>
+          <select id="stockEvolutionProductFilter" class="select-input" style="width:220px; height:36px; font-size:13px;" onchange="renderStockEvolutionChart()">
+            <option value="all">Tous les produits</option>
+          </select>
+        </div>
+      </div>
+      <div id="statStockEvolution" style="width:100%;height:320px"></div>
+    </div>
+
+    <div class="charts-grid">
+      <div class="chart-card"><h3>Produits les plus vendus</h3><div id="statTopSold" style="width:100%;height:260px"></div></div>
+      <div class="chart-card"><h3>Produits les moins vendus</h3><div id="statLeastSold" style="width:100%;height:260px"></div></div>
+      <div class="chart-card"><h3>Revenus mensuels</h3><div id="statRevenue" style="width:100%;height:260px"></div></div>
+      <div class="chart-card"><h3>Dépenses par catégorie</h3><div id="statExpenses" style="width:100%;height:260px"></div></div>
+      <div class="chart-card wide"><h3>Profit mensuel</h3><div id="statProfit" style="width:100%;height:260px"></div></div>
+    </div>
+  </section>
+
+  <!-- CAISSE -->
+  <section class="section" id="section-caisse">
+    <div class="caisse-header-grid">
+      <div class="caisse-solde-card">
+        <div style="display:flex; justify-content:space-between; align-items:center;">
+          <div class="caisse-solde-label">Solde actuel</div>
+          <button class="btn-icon" onclick="toggleCaisseTotal('caisseCurrentBalance','eyeSolde')" title="Masquer/Afficher" style="color:var(--text3);"><i class="fas fa-eye" id="eyeSolde"></i></button>
+        </div>
+        <div class="caisse-solde-value" id="caisseCurrentBalance">0 FCFA</div>
+        <div class="caisse-solde-sub">Mis à jour en temps réel</div>
+      </div>
+      <div class="caisse-actions-card">
+        <h3>Opérations rapides</h3>
+        <div class="caisse-quick-btns">
+          <button class="btn btn-primary" onclick="openCaisseDepotModal()"><i class="fas fa-plus-circle"></i> Dépôt / Entrée directe</button>
+          <button class="btn btn-outline" onclick="navigate('sales')"><i class="fas fa-shopping-cart"></i> Nouvelle vente</button>
+          <button class="btn btn-outline" onclick="navigate('expenses')"><i class="fas fa-wallet"></i> Nouvelle dépense</button>
+          <button class="btn btn-danger" onclick="printZReport()"><i class="fas fa-file-invoice-dollar"></i>Rapport caisse</button>
+        </div>
+      </div>
+    </div>
+    <!-- Totaux du jour avec bouton masquer -->
+    <div style="display:grid; grid-template-columns:1fr 1fr; gap:14px; margin-top:14px;">
+      <div class="caisse-solde-card" style="background:rgba(45,90,39,0.08); border:1px solid rgba(45,90,39,0.2); display:flex; flex-direction:column; gap:8px;">
+        <div style="display:flex; justify-content:space-between; align-items:center;">
+          <div class="caisse-solde-label" style="color:var(--success); margin:0;"><i class="fas fa-arrow-up"></i> Ventes</div>
+          <button class="btn-icon" onclick="toggleCaisseTotal('caisseTotalVentes','eyeVentes')" title="Masquer/Afficher" style="color:var(--text3);"><i class="fas fa-eye" id="eyeVentes"></i></button>
+        </div>
+        <div>
+          <div style="font-size:11px; color:var(--text3); text-transform:uppercase; letter-spacing:0.5px;">Aujourd'hui</div>
+          <div class="caisse-solde-value" id="caisseTotalVentes" style="color:var(--success); font-size:22px;">0 FCFA</div>
+        </div>
+        <div style="border-top:1px dashed rgba(45,90,39,0.2); padding-top:8px;">
+          <div style="font-size:11px; color:var(--text3); text-transform:uppercase; letter-spacing:0.5px;">Total historique</div>
+          <div class="caisse-solde-value" id="caisseTotalVentesGlobal" style="color:var(--success); font-size:16px; opacity:0.8;">0 FCFA</div>
+        </div>
+      </div>
+      <div class="caisse-solde-card" style="background:rgba(192,57,43,0.06); border:1px solid rgba(192,57,43,0.15); display:flex; flex-direction:column; gap:8px;">
+        <div style="display:flex; justify-content:space-between; align-items:center;">
+          <div class="caisse-solde-label" style="color:var(--danger); margin:0;"><i class="fas fa-arrow-down"></i> Dépenses</div>
+          <button class="btn-icon" onclick="toggleCaisseTotal('caisseTotalDepenses','eyeDepenses')" title="Masquer/Afficher" style="color:var(--text3);"><i class="fas fa-eye" id="eyeDepenses"></i></button>
+        </div>
+        <div>
+          <div style="font-size:11px; color:var(--text3); text-transform:uppercase; letter-spacing:0.5px;">Aujourd'hui</div>
+          <div class="caisse-solde-value" id="caisseTotalDepenses" style="color:var(--danger); font-size:22px;">0 FCFA</div>
+        </div>
+        <div style="border-top:1px dashed rgba(192,57,43,0.15); padding-top:8px;">
+          <div style="font-size:11px; color:var(--text3); text-transform:uppercase; letter-spacing:0.5px;">Total historique</div>
+          <div class="caisse-solde-value" id="caisseTotalDepensesGlobal" style="color:var(--danger); font-size:16px; opacity:0.8;">0 FCFA</div>
+        </div>
+      </div>
+    </div>
+    <div class="section-toolbar" style="margin-top:20px">
+      <div class="search-row">
+        <select id="caisseTypeFilter" class="select-input" onchange="renderCaisse()">
+          <option value="">Tous les types</option>
+          <option value="vente">Ventes</option>
+          <option value="depense">Dépenses</option>
+          <option value="retour">Retours</option>
+        </select>
+        <button class="btn btn-outline" onclick="printCaisse()"><i class="fas fa-print"></i> Imprimer</button>
+      </div>
+    </div>
+    <div class="table-wrapper">
+      <table class="data-table">
+        <thead><tr><th>Date</th><th>Type</th><th>Libellé</th><th>Montant</th><th>Solde après</th></tr></thead>
+        <tbody id="caisseBody"></tbody>
+      </table>
+    </div>
+  </section>
+
+  <!-- PRODUCTS -->
+  <section class="section" id="section-products">
+    <div class="section-toolbar">
+      <div class="search-row">
+        <input type="text" id="productSearch" placeholder="Rechercher un produit..." class="search-input" oninput="renderProducts()">
+        <select id="productCatFilter" class="select-input" onchange="renderProducts()"><option value="">Toutes les catégories</option></select>
+        <button class="btn btn-outline" onclick="openCatalogModal()" style="color:#25D366; border-color:#25D366; font-weight:600;"><i class="fas fa-images"></i> Catalogue Produits</button>
+        <select id="productSort" class="select-input" onchange="renderProducts()">
+          <option value="">Trier par...</option>
+          <option value="price-asc">Prix croissant</option><option value="price-desc">Prix décroissant</option>
+          <option value="stock-asc">Stock croissant</option><option value="stock-desc">Stock décroissant</option>
+        </select>
+      </div>
+    </div>
+    <div class="table-wrapper">
+      <table class="data-table" id="productsTable">
+        <thead><tr><th>Image</th><th>Nom</th><th>Catégorie</th><th>Prix</th><th>Stock</th><th>Péremption</th><th>Actions</th></tr></thead>
+        <tbody id="productsBody"></tbody>
+      </table>
+    </div>
+  </section>
+
+  <!-- CATEGORIES -->
+  <section class="section" id="section-categories">
+    <div class="table-wrapper">
+      <table class="data-table">
+        <thead><tr><th>Nom</th><th>Description</th><th>Nb Produits</th><th>Actions</th></tr></thead>
+        <tbody id="categoriesBody"></tbody>
+      </table>
+    </div>
+  </section>
+
+  <!-- STOCK -->
+  <section class="section" id="section-stock">
+    <div class="section-toolbar">
+      <div class="search-row">
+        <input type="text" id="stockSearch" placeholder="Rechercher un produit dans le stock..." class="search-input" oninput="renderStock()">
+        <select id="stockCatFilter" class="select-input" onchange="renderStock()"><option value="">Toutes les catégories</option></select>
+        <select id="stockShelfFilter" class="select-input" onchange="renderStock()" title="Filtrer par Rayon"><option value="">Tous les rayons</option></select>
+        <button class="btn btn-outline" onclick="toggleInventoryMode()" id="inventoryModeBtn"><i class="fas fa-clipboard-check"></i> Mode Inventaire</button>
+      </div>
+    </div>
+    <div class="alert-banner" id="stockAlertBanner" style="display:none"><i class="fas fa-exclamation-triangle"></i> Produits en stock faible — vérifiez les alertes ci-dessous</div>
+    <div class="table-wrapper">
+      <table class="data-table">
+        <thead><tr><th>Produit</th><th>Catégorie</th><th>Stock actuel</th><th>Statut</th><th>Actions</th></tr></thead>
+        <tbody id="stockBody"></tbody>
+      </table>
+    </div>
+  </section>
+
+  <!-- SALES -->
+  <section class="section" id="section-sales">
+    <div class="section-toolbar">
+      <div class="search-row">
+        <input type="text" id="salesSearch" placeholder="Rechercher par client...et par produit..." class="search-input" oninput="renderSales()">
+        <input type="date" id="salesDateFrom" class="date-input" onchange="renderSales()" title="Date de début">
+        <input type="date" id="salesDateTo" class="date-input" onchange="renderSales()" title="Date de fin">
+        <select id="salesCatFilter" class="select-input" onchange="renderSales()"><option value="">Toutes les catégories</option></select>
+        <button id="btnToggleTicketMode" class="btn btn-outline" onclick="toggleTicketMode()" title="Basculer entre format Facture A4 et Ticket de caisse">
+          <i class="fas fa-receipt"></i> <span>Format: Standard</span>
+        </button>
+        <button class="btn btn-primary" onclick="openSaleHistoryModal()" title="Voir l'historique complet des ventes en lecture seule">
+          <i class="fas fa-history"></i> Historique
+        </button>
+      </div>
+    </div>
+    <div class="table-wrapper">
+      <table class="data-table">
+        <thead><tr><th>#</th><th>Client</th><th>Produits</th><th>Total</th><th>Date</th><th>Actions</th></tr></thead>
+        <tbody id="salesBody"></tbody>
+      </table>
+    </div>
+  </section>
+
+  <!-- QUOTES -->
+  <section class="section" id="section-quotes">
+    <div class="table-wrapper">
+      <table class="data-table">
+        <thead><tr><th>#</th><th>Client</th><th>Total</th><th>Date</th><th>Actions</th></tr></thead>
+        <tbody id="quotesBody"></tbody>
+      </table>
+    </div>
+  </section>
+
+  <!-- RETURNS -->
+  <section class="section" id="section-returns">
+    <div class="table-wrapper">
+      <table class="data-table">
+        <thead><tr><th>#</th><th>Client</th><th>Produit</th><th>Qté</th><th>Remboursement</th><th>Motif</th><th>Date</th><th>Actions</th></tr></thead>
+        <tbody id="returnsBody"></tbody>
+      </table>
+    </div>
+  </section>
+
+  <!-- EXPENSES -->
+  <section class="section" id="section-expenses">
+    <div class="section-toolbar">
+      <div class="search-row">
+        <input type="text" id="expensesSearch" placeholder="Rechercher..." class="search-input" oninput="renderExpenses()">
+        <div class="caisse-limit-info" id="caisseExpenseInfo"></div>
+      </div>
+    </div>
+    <div class="table-wrapper">
+      <table class="data-table">
+        <thead><tr><th>#</th><th>Description</th><th>Montant</th><th>Catégorie</th><th>Date</th><th>Actions</th></tr></thead>
+        <tbody id="expensesBody"></tbody>
+      </table>
+    </div>
+  </section>
+
+  <!-- WHATSAPP -->
+  <section class="section" id="section-whatsapp" style="padding:0; overflow:hidden;">
+    <div id="whatsappContainer" style="position:relative; width:100%; height:calc(100vh - var(--titlebar-h) - 66px); background:#f0f2f5; overflow:hidden;">
+      <!-- La BrowserView sera superposée ici via Electron -->
+      <div id="whatsappPlaceholder" style="position:absolute; top:50%; left:50%; transform:translate(-50%,-50%); text-align:center; color:#666;">
+           <i class="fas fa-circle-notch fa-spin" style="font-size:40px; color:#25D366; margin-bottom:15px;"></i>
+           <p>Chargement de WhatsApp Web...</p>
+           <p style="font-size:12px; margin-top:10px; opacity:0.8;">Si le chargement est trop long, cliquez sur Actualiser.</p>
+      </div>
+    </div>
+  </section>
+
+  <!-- REPORTS -->
+  <section class="section" id="section-reports">
+    <div class="report-filters card">
+      <div class="filter-row">
+        <select id="reportType" class="select-input" onchange="generateReport()">
+          <option value="daily">Rapport Journalier</option>
+          <option value="caisse_total">Rapport Caisse Global</option>
+          <option value="sales">Ventes</option><option value="expenses">Dépenses</option>
+          <option value="profit">Bénéfices (Global)</option>
+          <option value="profit_by_product">Rentabilité par Produit</option>
+          <option value="products">Produits vendus</option>
+          <option value="returns">Retours</option><option value="products_list">Liste des Produits en Stock</option>
+          <option value="stock_mouvements">Mouvements de Stock (Entrées)</option>
+        </select>
+        <select id="reportPeriod" class="select-input" onchange="toggleCustomDates(); generateReport()">
+          <option value="day">Aujourd'hui</option><option value="week">Cette semaine</option>
+          <option value="month">Ce mois</option><option value="all_time">Depuis le début</option>
+          <option value="custom">Plage personnalisée</option>
+        </select>
+        <input type="date" id="reportFrom" class="date-input" style="display:none" onchange="generateReport()">
+        <input type="date" id="reportTo" class="date-input" style="display:none" onchange="generateReport()">
+        <button class="btn btn-primary" onclick="generateReport()">Générer</button>
+        <button class="btn btn-outline" onclick="printReport()"><i class="fas fa-print"></i> Imprimer</button>
+        <button class="btn btn-outline" style="color:#27ae60; border-color:#27ae60;" onclick="previewAccountingExcel()" title="Prévisualiser et exporter en format Excel professionnel pour la comptabilité">
+          <i class="fas fa-table"></i> Prévisualiser → Excel
+        </button>
+      </div>
+      <!-- Boutons WhatsApp rapport -->
+      <div id="reportWaActions" style="display:none; margin-top:12px; padding-top:12px; border-top:1px solid var(--border); gap:10px; align-items:center; flex-wrap:wrap;">
+        <span style="font-size:13px; color:var(--text2); font-weight:600;"><i class="fab fa-whatsapp" style="color:#25D366"></i> Envoyer via WhatsApp :</span>
+        <button class="btn btn-sm" style="background:#25D366;color:#fff;border:none;" onclick="sendReportWhatsApp('text')"><i class="fab fa-whatsapp"></i> Texte</button>
+        <button class="btn btn-sm btn-outline" onclick="sendReportWhatsApp('pdf')"><i class="fas fa-file-pdf" style="color:#E74C3C"></i> PDF</button>
+      </div>
+    </div>
+    <div id="reportOutput" class="report-output"></div>
+  </section>
+
+  <!-- AUDIT LOG -->
+  <section class="section" id="section-audit">
+    <div class="section-toolbar">
+      <div class="search-row">
+        <input type="text" id="auditSearch" placeholder="Filtrer par action, utilisateur ou détails..." class="search-input" oninput="renderAuditLog()">
+        <select id="auditActionFilter" class="select-input" onchange="renderAuditLog()">
+          <option value="">Toutes les actions</option>
+          <option value="SALE">Ventes</option>
+          <option value="DELETE">Suppressions</option>
+          <option value="UPDATE">Modifications</option>
+          <option value="CREATE">Créations</option>
+          <option value="STOCK">Stocks</option>
+          <option value="CAISSE">Caisse</option>
+          <option value="RETURN">Retours</option>
+          <option value="LOGIN">Connexions</option>
+        </select>
+        <select id="auditUserFilter" class="select-input" onchange="renderAuditLog()">
+          <option value="">Tous les utilisateurs</option>
+        </select>
+        <button class="btn btn-outline" onclick="renderAuditLog()"><i class="fas fa-sync-alt"></i> Actualiser</button>
+      </div>
+    </div>
+    <div class="table-wrapper">
+      <table class="data-table">
+        <thead>
+          <tr>
+            <th>Date & Heure</th>
+            <th>Utilisateur</th>
+            <th>Action</th>
+            <th>Entité</th>
+            <th>Détails</th>
+          </tr>
+        </thead>
+        <tbody id="auditLogBody"></tbody>
+      </table>
+    </div>
+  </section>
+
+  <!-- CORBEILLE -->
+  <section class="section" id="section-corbeille">
+    <div class="section-toolbar">
+      <div class="search-row">
+        <input type="text" id="corbeilleSearch" placeholder="Rechercher dans la corbeille..." class="search-input" oninput="renderCorbeilleSection()">
+        <select id="corbeilleTypeFilter" class="select-input" onchange="renderCorbeilleSection()">
+          <option value="">Tous les types</option>
+          <option value="product">Produits</option>
+          <option value="category">Catégories</option>
+          <option value="sale">Ventes</option>
+          <option value="expense">Dépenses</option>
+          <option value="quote">Devis</option>
+          <option value="return">Retours</option>
+          <option value="caisse_transaction">Transactions caisse</option>
+        </select>
+        <button class="btn btn-danger" onclick="emptyTrashAction()" id="btnViderCorbeille">
+          <i class="fas fa-fire-alt"></i> Vider la corbeille
+        </button>
+      </div>
+    </div>
+    <div id="corbeilleListSection" class="trash-list-section"></div>
+  </section>
+
+  <!-- SETTINGS -->
+  <section class="section" id="section-settings">
+    <div class="settings-grid">
+      <!-- Identité de l'application -->
+      <div class="settings-card">
+        <div class="settings-card-header">
+          <span class="settings-card-icon"><i class="fas fa-desktop"></i></span>
+          <div><h3>Identité du logiciel</h3><p>Définissez le nom de votre logiciel</p></div>
+        </div>
+        <div class="form-group">
+          <label>Nom du logiciel</label>
+          <input type="text" id="settingsAppName" class="form-input" placeholder="Ex: GestPro">
+        </div>
+        <div class="form-group">
+          <label>Téléphone(s)</label>
+          <input type="text" id="settingsAppPhone" class="form-input" placeholder="Ex: +221 78 123 45 67">
+        </div>
+        <div class="form-group">
+          <label>Adresse</label>
+          <input type="text" id="settingsAppAddress" class="form-input" placeholder="Ex: DAKAR, SENEGAL">
+        </div>
+        <div class="form-group">
+          <label>Description de l'entreprise</label>
+          <textarea id="settingsAppDesc" class="form-input" rows="3" placeholder="Ex: Commerce général, vente de matériaux..." style="resize:vertical;"></textarea>
+        </div>
+        <div class="form-group">
+          <label>Logo de l'entreprise</label>
+          <div style="display:flex; align-items:center; gap:12px; flex-wrap:wrap;">
+            <img id="appLogoPreview" src="" style="display:none; height:60px; max-width:160px; border:1px solid var(--border); border-radius:6px; object-fit:contain; background:#fff; padding:4px;">
+            <div style="display:flex; gap:8px;">
+              <label class="btn btn-outline" style="cursor:pointer; margin:0;">
+                <i class="fas fa-upload"></i> Choisir un logo
+                <input type="file" id="appLogoInput" accept="image/*" style="display:none;" onchange="handleLogoUpload(this)">
+              </label>
+              <button class="btn btn-outline" style="color:var(--danger); border-color:var(--danger);" onclick="removeLogo()" id="removeLogoBtn" style="display:none;"><i class="fas fa-trash"></i> Supprimer</button>
+            </div>
+          </div>
+        </div>
+        <div class="settings-actions">
+          <button class="btn btn-primary" onclick="saveAppName()"><i class="fas fa-save"></i> Enregistrer l'identité</button>
+        </div>
+      </div>
+
+      <!-- Caisse initiale 
+      <div class="settings-card">
+        <div class="settings-card-header">
+          <span class="settings-card-icon"><i class="fas fa-cash-register"></i></span>
+          <div><h3>Gestion de la caisse</h3><p>Ajouter un fonds de départ ou ajuster le solde</p></div>
+        </div>
+        <div class="caisse-settings-balance">Solde actuel : <strong id="settingsCaisseBalance">0 FCFA</strong></div>
+        <div class="form-group">
+          <label>Montant (FCFA)</label>
+          <input type="number" id="caisseSettingAmount" class="form-input" placeholder="Ex: 50000" min="0">
+        </div>
+        <div class="form-group">
+          <label>Libellé</label>
+          <input type="text" id="caisseSettingLabel" class="form-input" placeholder="Ex: Fonds de départ" value="Fonds de départ">
+        </div>
+         <div class="form-group">
+          <label>Type</label>
+          <input type="hidden" id="caisseSettingType" value="depot">
+        </div> -->
+        <!--<div class="settings-actions">
+          <button class="btn btn-primary" onclick="saveCaisseFromSettings()">Appliquer</button>
+        </div>
+      </div> -->
+
+      <!-- Export -->
+      <div class="settings-card">
+        <div class="settings-card-header">
+          <span class="settings-card-icon"><i class="fas fa-download"></i></span>
+          <div><h3>Exporter les données</h3><p>Sauvegarder toutes les données en JSON ou CSV</p></div>
+        </div>
+        <p class="settings-desc">Exportez l'intégralité de vos données dans un fichier. Utile pour faire une sauvegarde ou transférer vers une autre machine.</p>
+        <div class="settings-actions">
+          <button class="btn btn-primary" onclick="exportJSON()"><i class="fas fa-download"></i> Exporter JSON</button>
+          <button class="btn btn-outline" onclick="exportCSV()"><i class="fas fa-download"></i> Exporter CSV</button>
+        </div>
+      </div>
+
+      <!-- Import -->
+      <div class="settings-card">
+        <div class="settings-card-header">
+          <span class="settings-card-icon"><i class="fas fa-upload"></i></span>
+          <div><h3>Importer des données</h3><p>Restaurer depuis un fichier JSON exporté</p></div>
+        </div>
+        <p class="settings-desc">Importez un fichier JSON exporté depuis GestPro. Les enregistrements déjà présents ne seront <strong>pas écrasés</strong>.</p>
+        <div class="settings-actions">
+          <label class="btn btn-outline" style="cursor:pointer">
+            <i class="fas fa-upload"></i> Choisir un fichier JSON
+            <input type="file" id="importFileInput" accept=".json" style="display:none" onchange="importJSON(this)">
+          </label>
+        </div>
+        <div id="importResult" class="migrate-result" style="display:none"></div>
+      </div>
+      <!-- Modules visibles -->
+      <div class="settings-card">
+        <div class="settings-card-header">
+          <span class="settings-card-icon"><i class="fas fa-toggle-on"></i></span>
+          <div><h3>Modules visibles</h3><p>Choisissez les sections à afficher dans le menu</p></div>
+        </div>
+        <div style="display:grid; grid-template-columns:1fr 1fr; gap:10px; margin-bottom:16px;">
+          <label class="switch-container"><label class="switch"><input type="checkbox" id="mod-dashboard" checked><span class="slider round"></span></label><span class="switch-label"><i class="fas fa-tachometer-alt" style="color:var(--primary)"></i> Tableau de bord</span></label>
+          <label class="switch-container"><label class="switch"><input type="checkbox" id="mod-caisse" checked><span class="slider round"></span></label><span class="switch-label"><i class="fas fa-cash-register" style="color:var(--primary)"></i> Caisse</span></label>
+          <label class="switch-container"><label class="switch"><input type="checkbox" id="mod-products" checked><span class="slider round"></span></label><span class="switch-label"><i class="fas fa-box" style="color:var(--primary)"></i> Produits</span></label>
+          <label class="switch-container"><label class="switch"><input type="checkbox" id="mod-categories" checked><span class="slider round"></span></label><span class="switch-label"><i class="fas fa-tags" style="color:var(--primary)"></i> Catégories</span></label>
+          <label class="switch-container"><label class="switch"><input type="checkbox" id="mod-stock" checked><span class="slider round"></span></label><span class="switch-label"><i class="fas fa-warehouse" style="color:var(--primary)"></i> Stock</span></label>
+          <label class="switch-container"><label class="switch"><input type="checkbox" id="mod-sales" checked><span class="slider round"></span></label><span class="switch-label"><i class="fas fa-shopping-cart" style="color:var(--primary)"></i> Ventes</span></label>
+          <label class="switch-container"><label class="switch"><input type="checkbox" id="mod-quotes" checked><span class="slider round"></span></label><span class="switch-label"><i class="fas fa-file-invoice" style="color:var(--primary)"></i> Devis</span></label>
+          <label class="switch-container"><label class="switch"><input type="checkbox" id="mod-returns" checked><span class="slider round"></span></label><span class="switch-label"><i class="fas fa-undo-alt" style="color:var(--primary)"></i> Retours</span></label>
+          <label class="switch-container"><label class="switch"><input type="checkbox" id="mod-expenses" checked><span class="slider round"></span></label><span class="switch-label"><i class="fas fa-wallet" style="color:var(--primary)"></i> Dépenses</span></label>
+          <label class="switch-container"><label class="switch"><input type="checkbox" id="mod-reports" checked><span class="slider round"></span></label><span class="switch-label"><i class="fas fa-file-alt" style="color:var(--primary)"></i> Rapports</span></label>
+          <label class="switch-container"><label class="switch"><input type="checkbox" id="mod-whatsapp" checked><span class="slider round"></span></label><span class="switch-label"><i class="fab fa-whatsapp" style="color:#25D366"></i> WhatsApp</span></label>
+          <label class="switch-container"><label class="switch"><input type="checkbox" id="mod-audit" checked><span class="slider round"></span></label><span class="switch-label"><i class="fas fa-history" style="color:var(--primary)"></i> Audit</span></label>
+        </div>
+        <div class="settings-actions">
+          <button class="btn btn-primary" onclick="saveModuleSettings()"><i class="fas fa-save"></i> Appliquer la visibilité</button>
+        </div>
+      </div>
+      <!-- Sauvegarde de sécurité (ZIP) -->
+      <div class="settings-card">
+        <div class="settings-card-header">
+          <span class="settings-card-icon" style="background:var(--success-light); color:var(--success)"><i class="fas fa-file-archive"></i></span>
+          <div><h3>Sauvegarde complète</h3><p>Compressez tout (DB + Images) dans un ZIP</p></div>
+        </div>
+        <p class="settings-desc">Crée un fichier ZIP contenant l'intégralité de vos données. Idéal pour mettre sur une clé USB ou dans le cloud.</p>
+        <div class="settings-actions">
+          <button class="btn btn-primary" onclick="createBackupArchive()" style="background:var(--success); border-color:var(--success)">
+            <i class="fas fa-file-archive"></i> Créer une archive ZIP
+          </button>
+          <!-- <button class="btn btn-secondary" onclick="window.electronAPI.notify('Test GestPro','Ceci est une notification de test ! ✓')">
+            <i class="fas fa-bell"></i> Tester la Notification
+          </button> -->
+        </div>
+      </div>
+
+      <!-- DB Info -->
+      <div class="settings-card">
+        <div class="settings-card-header">
+          <span class="settings-card-icon"><i class="fas fa-database"></i></span>
+          <div><h3>Base de données</h3><p>État et informations de la base de données</p></div>
+        </div>
+        <div id="dbInfoPanel" class="db-info-panel"><div class="db-info-loading">Chargement…</div></div>
+        <div class="settings-actions">
+          <button class="btn btn-outline" onclick="refreshDbInfo()"><i class="fas fa-sync-alt"></i> Actualiser</button>
+          <button class="btn btn-outline" onclick="openDbFolder()" disabled><i class="fas fa-folder-open"></i> Ouvrir le dossier</button>
+        </div>
+      </div>
+
+      <!-- Corbeille (lien rapide vers la section dédiée) -->
+      <div class="settings-card">
+        <div class="settings-card-header">
+          <span class="settings-card-icon"><i class="fas fa-trash-alt"></i></span>
+          <div><h3>Corbeille</h3><p>Éléments supprimés — restauration possible</p></div>
+        </div>
+        <div id="trashList" class="trash-list"></div>
+        <div class="settings-actions" style="margin-top:8px">
+          <button class="btn btn-outline" onclick="navigate('corbeille')"><i class="fas fa-trash-alt"></i> Ouvrir la corbeille</button>
+          <button class="btn btn-danger" onclick="emptyTrashAction()"><i class="fas fa-fire-alt"></i> Vider la corbeille</button>
+        </div>
+      </div>
+
+      <!-- Migration 
+      <div class="settings-card">
+        <div class="settings-card-header">
+          <span class="settings-card-icon"><i class="fas fa-sync"></i></span>
+          <div><h3>Migration des données</h3><p>Importer depuis l'ancien LocalStorage</p></div>
+        </div>
+        <p class="settings-desc">Si vous utilisiez GestPro dans un navigateur, migrez vos anciennes données vers SQLite. Les données existantes ne seront pas écrasées.</p>
+        <div class="settings-actions">
+          <button class="btn btn-primary" onclick="migrateLocalStorage()"><i class="fas fa-sync"></i> Migrer depuis LocalStorage</button>
+        </div>
+        <div id="migrateResult" class="migrate-result" style="display:none"></div>
+      </div>-->
+
+      <!-- Utilisateurs & Sécurité -->
+      <div class="settings-card" id="adminUsersCard">
+        <div class="settings-card-header">
+          <span class="settings-card-icon" style="background:var(--primary); color:white"><i class="fas fa-users-cog"></i></span>
+          <div><h3>Utilisateurs & Sécurité</h3><p>Gérer les accès et les mots de passe</p></div>
+        </div>
+        <p class="settings-desc">Créez des comptes pour vos employés et configurez leurs droits. Pour changer votre propre mot de passe, cliquez sur le bouton modifier (<i class="fas fa-edit"></i>) de votre ligne.</p>
+        <div class="settings-actions">
+          <button class="btn btn-primary" onclick="openUserModal()"><i class="fas fa-user-plus"></i> Créer Compte</button>
+        </div>
+        <div class="table-wrapper" style="margin-top:14px; border-radius:8px;">
+          <table class="data-table">
+            <thead><tr><th>Identifiant</th><th>Rôle</th><th>Actions</th></tr></thead>
+            <tbody id="usersBody"></tbody>
+          </table>
+        </div>
+      </div>
+
+      <!-- À propos -->
+      <div class="settings-card">
+        <div class="settings-card-header">
+          <span class="settings-card-icon"><i class="fas fa-info-circle"></i></span>
+          <div><h3>À propos du logiciel</h3><p>Informations sur le logiciel</p></div>
+        </div>
+        <div class="about-info">
+          <div class="about-row"><span>Logiciel</span><strong>Gestion Commerciale</strong></div>
+          <div class="about-row"><span>Version</span><strong>4.3.2</strong></div>
+          <div class="about-row"><span>Base de données</span><strong>Tout les données sont stockées dans une base de données</strong></div>
+          <div class="about-row"><span>Stockage</span><strong>Dossier userData</strong></div>
+          <div class="about-row"><span>Auteur</span><strong>ABDOULAHI DIALLO</strong></div>
+          <div class="about-row"><span>Contact</span><strong>761808410</strong></div>
+          <div class="about-row"><span>Email</span><strong>papaabdoulayediallo2@gmail.com</strong></div>
+        </div>
+        <div class="settings-actions">
+          <button class="btn btn-outline" onclick="window.electronAPI?.about()" disabled><i class="fas fa-info-circle"></i> À propos</button>
+        </div>
+      </div>
+
+      
+
+      <!-- Thème -->
+      <div class="settings-card">
+        <div class="settings-card-header">
+          <span class="settings-card-icon"><i class="fas fa-adjust"></i></span>
+          <div><h3>Apparence</h3><p>Personnaliser l'affichage</p></div>
+        </div>
+        <div class="theme-options">
+          <button class="theme-option-btn" id="themeLight" onclick="setTheme('light')">
+            <span class="theme-preview light-preview"></span><span>Clair</span>
+          </button>
+          <button class="theme-option-btn" id="themeDark" onclick="setTheme('dark')">
+            <span class="theme-preview dark-preview"></span><span>Sombre</span>
+          </button>
+        </div>
+      </div>
+
+    </div>
+  </section>
+
+</main>
+
+<!-- TOAST -->
+<div id="toastContainer" class="toast-container"></div>
+
+<!-- MODALS -->
+
+<!-- Product Modal -->
+<div class="modal-overlay" id="productModal">
+  <div class="modal">
+    <div class="modal-header">
+      <h2 id="productModalTitle">Ajouter un produit</h2>
+      <button class="modal-close" onclick="closeModal('productModal')"><i class="fas fa-times"></i></button>
+    </div>
+    <div class="modal-body">
+      <input type="hidden" id="productId">
+      <div class="form-grid">
+        <div class="form-group"><label>Nom du produit *</label><input type="text" id="productName" class="form-input" placeholder="Nom du produit"></div>
+        <div class="form-group"><label>Catégorie *</label><select id="productCategory" class="form-input"></select></div>
+        <div class="form-group"><label>Prix de vente (FCFA) *</label><input type="number" id="productPrice" class="form-input" placeholder="0"></div>
+        <div class="form-group">
+          <label>Prix d'achat (Facultatif)</label>
+          <div style="display:flex;gap:8px">
+            <input type="number" id="productPurchasePrice" class="form-input" placeholder="0" style="flex:1">
+            <select id="productPurchaseType" class="form-input" style="flex:1">
+              <option value="unitaire">Par unité</option>
+              <option value="total">Total (pour la quantité stockée)</option>
+            </select>
+          </div>
+        </div>
+        <div class="form-group"><label>Quantité en stock *</label><input type="number" id="productStock" class="form-input" placeholder="0"></div>
+        <div class="form-group">
+          <label>Code-barre</label>
+          <div style="display:flex;gap:8px">
+            <input type="text" id="productBarcode" class="form-input" placeholder="Optionnel" style="flex:1">
+            <button class="btn btn-outline" onclick="startScanner('productBarcode')" title="Scanner avec la caméra" style="padding:0 12px">
+              <i class="fas fa-camera"></i>
+            </button>
+            <button class="btn btn-outline" onclick="generateBarcode()" title="Générer EAN13" style="padding:0 12px">
+              <i class="fas fa-barcode"></i>
+            </button>
+          </div>
+        </div>
+        <div class="form-group">
+          <label>Image</label>
+          <div class="image-input-group">
+            <input type="text" id="productImage" class="form-input" placeholder="URL ou choisir un fichier..." oninput="previewProductImage()">
+            <label class="btn btn-outline btn-sm" style="cursor:pointer;margin-top:6px;display:inline-flex;align-items:center;gap:6px">
+              <i class="fas fa-folder-open"></i> Depuis fichier
+              <input type="file" id="productImageFile" accept="image/*" style="display:none" onchange="loadProductImageFile(this)">
+            </label>
+            <div id="productImagePreview" class="image-preview" style="display:none"></div>
+          </div>
+        </div>
+        <div class="form-group full-width" style="display:grid; grid-template-columns: 1fr 1fr; gap:12px; border-top:1px dashed var(--border); padding-top:12px; margin-top:8px;">
+          <h4 style="grid-column: span 2; margin:0; font-size:13px; color:var(--primary);"><i class="fas fa-pills"></i> Détails Pharmaceutiques</h4>
+          <div class="form-group">
+            <label>Date de péremption</label>
+            <input type="date" id="productExpiryDate" class="form-input">
+          </div>
+          <div class="form-group">
+            <label>Numéro de Lot</label>
+            <input type="text" id="productBatchNumber" class="form-input" placeholder="Ex: LOT-123">
+          </div>
+          <div class="form-group">
+            <label>Dosage</label>
+            <input type="text" id="productDosage" class="form-input" placeholder="Ex: 500mg">
+          </div>
+          <div class="form-group">
+            <label>Forme (Galénique)</label>
+            <input type="text" id="productGalenicForm" class="form-input" placeholder="Ex: Gélule, Sirop">
+          </div>
+          <div class="form-group">
+            <label>Laboratoire</label>
+            <input type="text" id="productLaboratory" class="form-input" placeholder="Ex: Sanofi, Pfizer">
+          </div>
+          <div class="form-group">
+            <label>Emplacement / Rayon</label>
+            <input type="text" id="productShelfLocation" class="form-input" placeholder="Ex: Rayon A-1">
+          </div>
+        </div>
+        <div class="form-group full-width"><label>Description</label><textarea id="productDescription" class="form-input" rows="3" placeholder="Description du produit..."></textarea></div>
+      </div>
+    </div>
+    <div class="modal-footer">
+      <button class="btn btn-outline" style="color:var(--info);border-color:var(--info);" onclick="openBdpmSearch()" title="Rechercher la fiche officielle ANSM du médicament"><i class="fas fa-search-plus"></i> Recherche BDPM</button>
+      <button class="btn btn-outline" onclick="closeModal('productModal')">Annuler</button>
+      <button class="btn btn-primary" onclick="saveProduct()">Enregistrer</button>
+    </div>
+  </div>
+</div>
+
+<!-- Barcode Print Modal -->
+<div class="modal-overlay" id="barcodePrintModal">
+  <div class="modal modal-sm">
+    <div class="modal-header">
+      <h2>Imprimer l'étiquette</h2>
+      <button class="modal-close" onclick="closeModal('barcodePrintModal')"><i class="fas fa-times"></i></button>
+    </div>
+    <div class="modal-body" style="text-align:center">
+      <div id="barcodePreviewArea" style="background:#fff;padding:20px;border-radius:8px;display:inline-block;border:1px solid var(--border); box-shadow: var(--shadow-sm);">
+        <div id="barcodeProdName" style="font-size:16px; font-weight:700; color:var(--text); margin-bottom:10px; max-width: 300px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;"></div>
+        <svg id="barcodeCanvas"></svg>
+      </div>
+    </div>
+    <div class="modal-footer" style="display:flex; gap:10px;">
+      <button class="btn btn-outline" onclick="closeModal('barcodePrintModal')" style="flex:1">Fermer</button>
+      <button class="btn btn-outline" onclick="exportBarcodeImageAction()" style="flex:1; border-color:#f39c12; color:#f39c12;"><i class="fas fa-image"></i> Image</button>
+      <button class="btn btn-primary" onclick="printBarcodeLabel()" style="flex:1"><i class="fas fa-print"></i> Imprimer</button>
+    </div>
+  </div>
+</div>
+<!-- Category Modal -->
+<div class="modal-overlay" id="categoryModal">
+  <div class="modal">
+    <div class="modal-header">
+      <h2 id="categoryModalTitle">Ajouter une catégorie</h2>
+      <button class="modal-close" onclick="closeModal('categoryModal')"><i class="fas fa-times"></i></button>
+    </div>
+    <div class="modal-body">
+      <input type="hidden" id="categoryId">
+      <div class="form-group"><label>Nom de la catégorie *</label><input type="text" id="categoryName" class="form-input" placeholder="Nom de la catégorie"></div>
+      <div class="form-group"><label>Description</label><textarea id="categoryDescription" class="form-input" rows="3"></textarea></div>
+    </div>
+    <div class="modal-footer">
+      <button class="btn btn-outline" onclick="closeModal('categoryModal')">Annuler</button>
+      <button class="btn btn-primary" onclick="saveCategory()">Enregistrer</button>
+    </div>
+  </div>
+</div>
+
+<!-- Sale Modal -->
+<!-- Sale Modal (POS Mode) -->
+<div class="modal-overlay" id="saleModal">
+  <div class="modal modal-pos">
+    <div class="modal-header">
+      <h2 id="saleModalTitle">Nouvelle vente</h2>
+      <div style="display:flex; gap:15px; align-items:center;">
+        <button class="btn btn-outline btn-sm" onclick="openSaleHistoryModal()" title="Voir l'historique récent">
+          <i class="fas fa-history"></i> Historique
+        </button>
+        <label class="switch-container" title="Activer/Désactiver le bip sonore">
+          <label class="switch">
+            <input type="checkbox" id="posSoundToggle" checked onchange="togglePosSound()">
+            <span class="slider round"></span>
+          </label>
+          <span class="switch-label" style="font-size:12px;"><i class="fas fa-volume-up"></i> Son</span>
+        </label>
+        <button class="modal-close" onclick="closeModal('saleModal')"><i class="fas fa-times"></i></button>
+      </div>
+    </div>
+    <div class="modal-body pos-layout" style="padding:0;">
+      <!-- Left Column: Cart -->
+      <div class="pos-cart">
+        <input type="hidden" id="saleId">
+        
+        <!-- Client + Patient -->
+        <div class="form-grid" style="margin-bottom:12px; gap:8px;">
+          <div class="form-group" style="margin-bottom:0;"><input type="text" id="saleClient" class="form-input" style="padding:8px; font-size:13px;" placeholder="Nom du client (Optionnel)"></div>
+          <div class="form-group" style="margin-bottom:0;"><input type="text" id="saleClientPhone" class="form-input" style="padding:8px; font-size:13px;" placeholder="Téléphone"></div>
+        </div>
+        <div class="form-group" style="margin-bottom:12px;">
+          <select id="salePatientSelect" class="form-input" style="padding:8px; font-size:13px;" onchange="onSalePatientChange()">
+            <option value="">-- Lier à un dossier patient (optionnel) --</option>
+          </select>
+        </div>
+
+        <!-- Scan rapide -->
+        <div class="pos-scan-area">
+          <div style="display:flex; gap:8px; align-items:center; width:100%;">
+            <div style="color:var(--primary); font-size:18px;"><i class="fas fa-barcode"></i></div>
+            <input type="text" id="saleBarcodeInput" class="form-input" style="flex:1; border:none; background:transparent; font-weight:600; font-size:14px; outline:none !important; box-shadow:none !important;" placeholder="Scannez ici..." onkeydown="scanBarcodeInSale(event)" autocomplete="off">
+            <button class="btn btn-primary btn-sm" onclick="startScanner('saleBarcodeInput')" title="Scanner avec la caméra" style="border-radius:4px;"><i class="fas fa-camera"></i></button>
+          </div>
+        </div>
+
+        <div class="pos-items-container" id="saleItems">
+           <!-- Items dynamically rendered -->
+        </div>
+
+        <div class="pos-checkout-area">
+          <div class="form-grid" style="grid-template-columns: 1fr 1fr; gap:8px; margin-bottom:10px;">
+            <div class="form-group" style="margin-bottom:0;">
+              <select id="salePaymentMode" class="form-input" style="padding:8px; font-size:13px;" onchange="updateSaleDebtPreview()">
+                <option value="Espèces">Espèces</option>
+                <option value="Orange Money">Orange Money</option>
+                <option value="Wave">Wave</option>
+                <option value="Chèque">Chèque</option>
+              </select>
+            </div>
+            <div class="form-group" style="margin-bottom:0;">
+              <button type="button" id="saleDebtToggleBtn" class="btn btn-outline" style="width:100%; padding:8px; font-size:12px; height:100%;" onclick="toggleSaleDebt()">
+                <i class="fas fa-hand-holding-usd"></i> C'est une dette
+              </button>
+            </div>
+          </div>
+
+          <!-- Zone dette -->
+          <div id="saleDebtZone" style="display:none; background:var(--warning-light); border:1px solid var(--warning); border-radius:8px; padding:10px; margin-bottom:10px;">
+            <div style="display:flex; justify-content:space-between; align-items:center;">
+              <label style="margin:0; font-size:12px; color:var(--warning); font-weight:700;">Montant payé (FCFA)</label>
+              <input type="number" id="saleAmountPaid" class="form-input" style="width:120px; padding:6px 10px; text-align:right; font-weight:700;" placeholder="0" min="0" oninput="updateSaleDebtPreview()">
+            </div>
+            <div id="saleDebtPreview" style="font-size:13px; color:var(--danger); font-weight:700; margin-top:6px; text-align:right;"></div>
+          </div>
+
+          <div class="sale-total-row"><strong>Total : <span id="saleTotalDisplay">0 FCFA</span></strong></div>
+        </div>
+      </div>
+
+      <!-- Right Column: Products & Search -->
+      <div class="pos-products">
+        <div class="pos-search-bar">
+          <i class="fas fa-search" style="color:var(--text3); font-size:16px;"></i>
+          <input type="text" id="posSearchInput" class="form-input pos-search-input" placeholder="Rechercher (Nom, Prix, Catégorie...)" oninput="filterPosProducts()" autocomplete="off">
+        </div>
+        <div class="pos-category-chips" id="posCategoryChips">
+           <button class="pos-chip active" onclick="setPosCategory('')">Tout</button>
+           <!-- Categories dynamiques -->
+        </div>
+        <div class="pos-product-grid" id="posProductGrid">
+           <!-- Produits dynamiques -->
+        </div>
+      </div>
+    </div>
+    <div class="modal-footer" style="background:var(--surface); border-top:1px solid var(--border);">
+      <button class="btn btn-outline" onclick="closeModal('saleModal')">Annuler</button>
+      <button class="btn btn-primary" style="font-size:16px; padding:10px 24px;" onclick="saveSale()"><i class="fas fa-check-circle"></i> Enregistrer Vente (Entrée)</button>
+    </div>
+  </div>
+</div>
+
+<!-- Debt Settlement Modal -->
+<div class="modal-overlay" id="debtModal">
+  <div class="modal modal-sm">
+    <div class="modal-header">
+      <h2 id="debtModalTitle">Solder une dette</h2>
+      <button class="modal-close" onclick="closeModal('debtModal')"><i class="fas fa-times"></i></button>
+    </div>
+    <div class="modal-body">
+      <input type="hidden" id="debtSaleId">
+      <p id="debtModalDesc" style="font-size:14px; margin-bottom:14px;"></p>
+      <div class="form-group">
+        <label>Montant versé maintenant *</label>
+        <input type="number" id="debtAmountPaid" class="form-input" placeholder="Ex: 5000" min="0">
+      </div>
+    </div>
+    <div class="modal-footer">
+      <button class="btn btn-outline" onclick="closeModal('debtModal')">Annuler</button>
+      <button class="btn btn-primary" onclick="confirmSettleDebt()">Valider le paiement</button>
+    </div>
+  </div>
+</div>
+
+<!-- Quote Modal -->
+<div class="modal-overlay" id="quoteModal">
+  <div class="modal modal-pos">
+    <div class="modal-header" style="justify-content: flex-start; gap: 15px;">
+      <h2 id="quoteModalTitle">Nouveau devis</h2>
+      <div style="flex:1"></div>
+      <button class="modal-close" onclick="closeModal('quoteModal')"><i class="fas fa-times"></i></button>
+    </div>
+    
+    <div class="pos-layout">
+      <!-- Partie Gauche: Panier -->
+      <div class="pos-cart">
+        <input type="hidden" id="quoteId">
+        <div style="display:grid; grid-template-columns:1fr 1fr; gap:10px; margin-bottom:15px;">
+          <input type="text" id="quoteClient" class="form-input" placeholder="Nom du client">
+          <input type="text" id="quoteClientPhone" class="form-input" placeholder="Téléphone (WhatsApp)">
+        </div>
+        
+        <div class="pos-items-container" id="quoteItems">
+          <!-- Lignes du devis -->
+        </div>
+
+        <div style="background:var(--surface2); border:1px dashed var(--border); border-radius:6px; padding:10px; margin-bottom:15px;">
+           <div style="font-size:11px; font-weight:600; color:var(--text3); margin-bottom:6px; text-transform:uppercase;">+ Produit hors catalogue</div>
+           <div style="display:flex; gap:6px;">
+             <input type="text" id="quoteCustomName" class="form-input" placeholder="Nom du produit libre" style="flex:1; height:36px; padding:4px 10px;">
+             <input type="number" id="quoteCustomPrice" class="form-input" placeholder="Prix" style="width:80px; height:36px; padding:4px 10px;" onkeypress="if(event.key==='Enter') addCustomQuoteItem()">
+             <button class="btn btn-outline" style="padding:0 12px; height:36px;" onclick="addCustomQuoteItem()"><i class="fas fa-plus"></i></button>
+           </div>
+        </div>
+        
+        <div class="pos-checkout-area">
+          <div style="display:flex; justify-content:space-between; font-size:18px; font-weight:700; color:var(--text); margin-bottom:15px;">
+            <span>Total estimé</span>
+            <span id="quoteTotalDisplay" style="color:var(--accent)">0 FCFA</span>
+          </div>
+          <button class="btn btn-primary" style="width:100%; height:44px; font-size:15px;" onclick="saveQuote()"><i class="fas fa-check-circle"></i> Enregistrer le devis</button>
+        </div>
+      </div>
+      
+      <!-- Partie Droite: Catalogue visuel -->
+      <div class="pos-products">
+        <div class="pos-search-bar">
+          <i class="fas fa-search search-icon"></i>
+          <input type="text" id="quotePosSearchInput" class="form-input pos-search-input" placeholder="Rechercher par nom, prix ou code..." oninput="filterQuotePosProducts()">
+        </div>
+        <div class="pos-category-chips" id="quotePosCategoryChips"></div>
+        <div class="pos-product-grid" id="quotePosProductGrid"></div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Return Modal -->
+<div class="modal-overlay" id="returnModal">
+  <div class="modal modal-large">
+    <div class="modal-header">
+      <h2>Enregistrer un retour</h2>
+      <button class="modal-close" onclick="closeModal('returnModal')"><i class="fas fa-times"></i></button>
+    </div>
+    <div class="modal-body">
+      <div class="form-group">
+        <label>Sélectionner une vente *</label>
+        <select id="returnSaleSelect" class="form-input" onchange="onReturnSaleChange()"><option value="">-- Choisir une vente --</option></select>
+      </div>
+      <div id="returnItemsSection" style="display:none">
+        <p style="margin-bottom:8px;font-weight:500">Produits achetés (sélectionner ceux à retourner) :</p>
+        <div id="returnItemsList"></div>
+        <div class="form-group" style="margin-top:12px">
+          <label>Motif du retour *</label>
+          <textarea id="returnReason" class="form-input" rows="2" placeholder="Ex: Défectueux, erreur de commande..."></textarea>
+        </div>
+      </div>
+    </div>
+    <div class="modal-footer">
+      <button class="btn btn-outline" onclick="closeModal('returnModal')">Annuler</button>
+      <button class="btn btn-primary" onclick="saveReturn()">Enregistrer le retour</button>
+    </div>
+  </div>
+</div>
+
+<!-- Expense Modal -->
+<div class="modal-overlay" id="expenseModal">
+  <div class="modal">
+    <div class="modal-header">
+      <h2 id="expenseModalTitle">Ajouter une dépense</h2>
+      <button class="modal-close" onclick="closeModal('expenseModal')"><i class="fas fa-times"></i></button>
+    </div>
+    <div class="modal-body">
+      <input type="hidden" id="expenseId">
+      <div id="expenseCaisseWarning" class="expense-caisse-warning" style="display:none"></div>
+      <div class="form-group"><label>Description *</label><input type="text" id="expenseDesc" class="form-input" placeholder="Ex: Loyer mensuel"></div>
+      <div class="form-group"><label>Montant (FCFA) *</label><input type="number" id="expenseAmount" class="form-input" placeholder="0" oninput="checkExpenseVsCaisse()"></div>
+      <div class="form-group"><label>Catégorie</label><input type="text" id="expenseCat" class="form-input" placeholder="Ex: Loyer, Transport..."></div>
+      <div class="form-group"><label>Date</label><input type="date" id="expenseDate" class="form-input"></div>
+    </div>
+    <div class="modal-footer">
+      <button class="btn btn-outline" onclick="closeModal('expenseModal')">Annuler</button>
+      <button class="btn btn-primary" id="expenseSaveBtn" onclick="saveExpense()">Enregistrer</button>
+    </div>
+  </div>
+</div>
+
+<!-- Stock Modal -->
+<div class="modal-overlay" id="stockModal">
+  <div class="modal">
+    <div class="modal-header">
+      <h2 id="stockModalTitle">Ajuster le stock</h2>
+      <button class="modal-close" onclick="closeModal('stockModal')"><i class="fas fa-times"></i></button>
+    </div>
+    <div class="modal-body">
+      <input type="hidden" id="stockProductId">
+      <div class="form-group"><label>Opération</label>
+        <select id="stockOperation" class="form-input">
+          <option value="add">Ajouter au stock</option>
+          <option value="remove">Retirer du stock</option>
+        </select>
+      </div>
+      <div class="form-group"><label>Quantité</label><input type="number" id="stockQty" class="form-input" min="1" value="1"></div>
+    </div>
+    <div class="modal-footer">
+      <button class="btn btn-outline" onclick="closeModal('stockModal')">Annuler</button>
+      <button class="btn btn-primary" onclick="applyStockAdjustment()">Appliquer</button>
+    </div>
+  </div>
+</div>
+
+<!-- Caisse Depot Modal -->
+<div class="modal-overlay" id="caisseDepotModal">
+  <div class="modal">
+    <div class="modal-header">
+      <h2><i class="fas fa-plus-circle"></i> Entrée directe (Dépôt)</h2>
+      <button class="modal-close" onclick="closeModal('caisseDepotModal')"><i class="fas fa-times"></i></button>
+    </div>
+    <div class="modal-body">
+      <input type="hidden" id="caisseDepotType" value="depot">
+      <div class="form-group"><label>Montant (FCFA) *</label><input type="number" id="caisseDepotAmount" class="form-input" placeholder="0" min="1"></div>
+      <div class="form-group"><label>Libellé *</label><input type="text" id="caisseDepotLabel" class="form-input" placeholder="Ex: Fonds de départ"></div>
+    </div>
+    <div class="modal-footer">
+      <button class="btn btn-outline" onclick="closeModal('caisseDepotModal')">Annuler</button>
+      <button class="btn btn-primary" onclick="saveCaisseDepot()">Enregistrer</button>
+    </div>
+  </div>
+</div>
+
+<!-- Confirm Dialog -->
+<div class="modal-overlay" id="confirmModal">
+  <div class="modal modal-sm">
+    <div class="modal-header">
+      <h2>Confirmation</h2>
+      <button class="modal-close" onclick="closeModal('confirmModal')"><i class="fas fa-times"></i></button>
+    </div>
+    <div class="modal-body"><p id="confirmMessage">Êtes-vous sûr ?</p></div>
+    <div class="modal-footer">
+      <button class="btn btn-outline" onclick="closeModal('confirmModal')">Annuler</button>
+      <button class="btn btn-danger" id="confirmBtn">Confirmer</button>
+    </div>
+  </div>
+</div>
+
+<!-- Scanner Modal -->
+<div class="modal-overlay" id="scannerModal">
+  <div class="modal modal-sm">
+    <div class="modal-header">
+      <h2>Scanner un code-barre</h2>
+      <button class="modal-close" onclick="stopScanner()"><i class="fas fa-times"></i></button>
+    </div>
+    <div class="modal-body" style="padding:10px;">
+      <div id="cameraSelectContainer" style="margin-bottom:10px; display:none;">
+        <label style="font-size:12px; color:var(--text2);">Choisir la caméra :</label>
+        <select id="cameraSelect" class="form-input" style="padding:4px 8px; font-size:13px; height:auto;" onchange="changeCamera()"></select>
+      </div>
+      <div id="reader" style="width:100%; min-height:250px; background:#000; border-radius:8px; overflow:hidden;"></div>
+      <p style="text-align:center; font-size:12px; margin-top:10px; color:var(--text3);">Placez le code-barre devant la caméra</p>
+    </div>
+    <div class="modal-footer">
+      <button class="btn btn-outline" style="width:100%;" onclick="stopScanner()">Annuler</button>
+    </div>
+  </div>
+</div>
+
+<!-- Invoice Print Area -->
+<div id="printArea" class="print-only"></div>
+
+<!-- Activation Overlay (First Launch) -->
+<div id="activationOverlay" style="display:none;">
+    <div class="activation-card">
+        <div class="activation-icon"><i class="fas fa-key"></i></div>
+        <h2>Activation du Logiciel</h2>
+        <p>Veuillez saisir votre code d'activation unique pour commencer à utiliser le logiciel.</p>
+        <div class="form-group" style="margin-top:25px;">
+            <input type="password" id="activationCodeInput" class="form-input" placeholder="Code d'activation" style="text-align:center; font-size:18px; letter-spacing:4px;">
+        </div>
+        <button class="btn btn-primary" style="width:100%; margin-top:15px; height:45px; font-size:16px;" onclick="validateActivation()">
+            Activer le logiciel
+        </button>
+        <p style="margin-top:20px; font-size:12px; color:var(--text3);">Contactez votre administrateur pour obtenir votre code.</p>
+    </div>
+</div>
+
+<!-- Login Overlay (Every Launch) -->
+<div id="loginOverlay" style="display:none;">
+    <div class="activation-card">
+        <div class="activation-icon"><i class="fas fa-user-lock"></i></div>
+        <h2>Connexion</h2>
+        <p>Sélectionnez votre compte pour accéder au logiciel.</p>
+        
+        <div id="loginUserRadioList" style="margin-top:20px; display:grid; grid-template-columns:1fr; gap:10px; max-height:200px; overflow-y:auto; padding:5px;">
+          <!-- Radio boutons injectés par JS -->
+          <div style="padding:20px; color:var(--text3); font-size:12px;">Chargement des comptes...</div>
+        </div>
+
+        <div class="form-group" id="loginPasswordSection" style="margin-top:20px; text-align:left; display:none;">
+            <label style="font-size:12px; margin-left:5px;">Code secret</label>
+            <div class="password-input-wrapper">
+                <input type="password" id="loginCodeInput" class="form-input" placeholder="Mot de passe" style="text-align:center; font-size:16px; letter-spacing:3px;">
+                <button type="button" class="btn-toggle-pass" onclick="togglePassword('loginCodeInput', this)"><i class="fas fa-eye"></i></button>
+            </div>
+        </div>
+        <button class="btn btn-primary" style="width:100%; margin-top:20px; height:45px; font-size:16px;" onclick="validateLogin()">
+            Se connecter
+        </button>
+        <p style="margin-top:20px; font-size:12px; color:var(--text3);">En cas d'oubli, veuillez contacter votre administrateur.</p>
+    </div>
+</div>
+
+<!-- Modale de confirmation par mot de passe -->
+<div class="modal-overlay" id="passwordConfirmModal">
+  <div class="modal" style="max-width:380px;">
+    <div class="modal-header">
+      <h2><i class="fas fa-lock"></i> Vérification requise</h2>
+      <button class="modal-close" onclick="closeModal('passwordConfirmModal')"><i class="fas fa-times"></i></button>
+    </div>
+    <div class="modal-body">
+      <p style="margin-bottom:14px; color:var(--text2); font-size:14px;">Saisissez votre mot de passe pour modifier les paramètres de visibilité.</p>
+      <div class="password-input-wrapper">
+        <input type="password" id="passwordConfirmInput" class="form-input" placeholder="Mot de passe" style="text-align:center; font-size:18px; letter-spacing:4px;">
+        <button type="button" class="btn-toggle-pass" onclick="togglePassword('passwordConfirmInput', this)"><i class="fas fa-eye"></i></button>
+      </div>
+      <p id="passwordConfirmError" style="display:none; color:var(--danger); font-size:13px; margin-top:8px; text-align:center;"><i class="fas fa-times-circle"></i> Mot de passe incorrect</p>
+    </div>
+    <div class="modal-footer">
+      <button class="btn btn-outline" onclick="closeModal('passwordConfirmModal')">Annuler</button>
+      <button class="btn btn-primary" onclick="_submitPasswordConfirm()"><i class="fas fa-check"></i> Confirmer</button>
+    </div>
+  </div>
+</div>
+
+<!-- Modal Envoi Rapport WhatsApp -->
+<div class="modal-overlay" id="reportWaSendModal">
+  <div class="modal modal-sm">
+    <div class="modal-header">
+      <h2><i class="fab fa-whatsapp" style="color:#25D366"></i> Envoyer le rapport</h2>
+      <button class="modal-close" onclick="closeModal('reportWaSendModal')"><i class="fas fa-times"></i></button>
+    </div>
+    <div class="modal-body">
+      <p style="color:var(--text2); font-size:14px; margin-bottom:14px;">Saisissez le numéro WhatsApp du destinataire.</p>
+      <div class="form-group">
+        <label>Numéro de téléphone *</label>
+        <input type="tel" id="reportWaPhone" class="form-input" placeholder="Ex: 771234567 ou 221771234567" style="font-size:16px; letter-spacing:1px;">
+        <small style="color:var(--text3); font-size:12px; margin-top:4px; display:block;">L'indicatif pays (+221) est optionnel — sans espaces ni +</small>
+      </div>
+      <p id="reportWaError" style="display:none; color:var(--danger); font-size:13px; margin-top:4px;"><i class="fas fa-exclamation-circle"></i> Numéro invalide (trop court)</p>
+    </div>
+    <div class="modal-footer">
+      <button class="btn btn-outline" onclick="closeModal('reportWaSendModal')">Annuler</button>
+      <button class="btn btn-primary" id="reportWaSendBtn" onclick="_doSendReportWa()"><i class="fab fa-whatsapp"></i> Envoyer</button>
+    </div>
+  </div>
+</div>
+
+<!-- Modal Utilisateur -->
+<div class="modal-overlay" id="userModal">
+  <div class="modal modal-lg">
+    <div class="modal-header">
+      <h2 id="userModalTitle">Gérer un Utilisateur</h2>
+      <button class="modal-close" onclick="closeModal('userModal')"><i class="fas fa-times"></i></button>
+    </div>
+    <div class="modal-body">
+      <input type="hidden" id="userId">
+      
+      <!-- Photo de profil -->
+      <div style="display:flex; flex-direction:column; align-items:center; margin-bottom:20px;">
+        <div id="userPhotoPreview" style="width:120px; height:120px; border-radius:50%; background:var(--surface2); border:2px solid var(--border); display:flex; align-items:center; justify-content:center; overflow:hidden; margin-bottom:10px;">
+          <i class="fas fa-user" style="font-size:60px; color:var(--text3);"></i>
+        </div>
+        <input type="file" id="userPhotoInput" accept="image/*" style="display:none;" onchange="onUserPhotoChange(event)">
+        <button class="btn btn-sm btn-outline" onclick="document.getElementById('userPhotoInput').click()"><i class="fas fa-camera"></i> Changer la photo</button>
+      </div>
+      
+      <div class="form-grid">
+        <div class="form-group">
+          <label>Identifiant de connexion *</label>
+          <input type="text" id="userUsername" class="form-input" placeholder="ex: vendeur1">
+        </div>
+
+        <div id="oldPwdSection" style="display:none; margin-top:15px; border-bottom:1px solid var(--border); padding-bottom:15px; margin-bottom:15px;">
+          <div class="form-group">
+            <label>Ancien mot de passe <small>(Indispensable pour changer le code)</small></label>
+            <div class="password-input-wrapper">
+              <input type="password" id="userOldPassword" class="form-input" placeholder="Ancien code">
+              <i class="fas fa-eye password-toggle-icon" id="toggleOldPwd" onclick="togglePasswordVisibility('userOldPassword', 'toggleOldPwd')"></i>
+            </div>
+          </div>
+        </div>
+
+        <div class="form-group">
+          <label>Nouveau Mot de passe</label>
+          <div class="password-input-wrapper">
+            <input type="password" id="userPassword" class="form-input" placeholder="Nouveau code">
+            <i class="fas fa-eye password-toggle-icon" id="toggleNewPwd" onclick="togglePasswordVisibility('userPassword', 'toggleNewPwd')"></i>
+          </div>
+        </div>
+
+        <div class="form-group" style="margin-top:10px;">
+          <label>Confirmation du mot de passe</label>
+          <div class="password-input-wrapper">
+            <input type="password" id="userPasswordConfirm" class="form-input" placeholder="Répéter le code">
+            <i class="fas fa-eye password-toggle-icon" id="toggleConfirmPwd" onclick="togglePasswordVisibility('userPasswordConfirm', 'toggleConfirmPwd')"></i>
+          </div>
+        </div>
+
+        <div class="form-group" style="margin-top:10px; background:var(--surface2); padding:10px; border-radius:var(--radius-sm); border:1.5px solid var(--border);">
+          <label class="switch-container">
+            <label class="switch">
+              <input type="checkbox" id="userNoPassword" onchange="toggleNoPassword(this.checked)">
+              <span class="slider round"></span>
+            </label>
+            <span class="switch-label" style="font-weight:700; color:var(--accent);">Désactiver le mot de passe (Connexion sans code)</span>
+          </label>
+        </div>
+
+        <div id="pwdHint" style="font-size:10px; color:var(--text3); margin-top:5px; margin-bottom:10px;">
+          Si décoché : Laissez les champs vides pour ne pas modifier le mot de passe actuel.
+        </div>
+      </div>
+
+      <div class="form-group" id="userRoleGroup" style="margin-top:10px;">
+        <label>Type de compte</label>
+        <select id="userRole" class="form-input" onchange="togglePermissionsPanels()">
+          <option value="employe">Employé (Droits restreints)</option>
+          <option value="admin">Administrateur (Tous les droits)</option>
+        </select>
+      </div>
+
+      <div id="permissionsPanel" style="margin-top:20px; background:var(--bg-alt); padding:15px; border-radius:8px; border:1px solid var(--border);">
+        <h3 style="font-size:14px; margin-bottom:12px; color:var(--primary);"><i class="fas fa-key"></i> Permissions à la carte</h3>
+        
+        <div style="display:grid; grid-template-columns:1fr 1fr; gap:20px;">
+          <!-- Ventes -->
+          <div style="display:flex; flex-direction:column; gap:10px;">
+            <strong style="font-size:12px; display:block; margin-bottom:4px; color:var(--text2)"><i class="fas fa-shopping-cart"></i> Ventes & Caisse</strong>
+            <label class="switch-container"><label class="switch"><input type="checkbox" id="perm_canSell"><span class="slider round"></span></label><span class="switch-label">Ventes</span></label>
+            <label class="switch-container"><label class="switch"><input type="checkbox" id="perm_canMakeQuotes"><span class="slider round"></span></label><span class="switch-label">Devis</span></label>
+            <label class="switch-container"><label class="switch"><input type="checkbox" id="perm_canManageReturns"><span class="slider round"></span></label><span class="switch-label">Retours clients</span></label>
+            <label class="switch-container"><label class="switch"><input type="checkbox" id="perm_canSettleDebt"><span class="slider round"></span></label><span class="switch-label">Gérer les dettes</span></label>
+            <label class="switch-container"><label class="switch"><input type="checkbox" id="perm_canManageExpenses"><span class="slider round"></span></label><span class="switch-label">Dépenses</span></label>
+          </div>
+          <!-- Stock -->
+          <div style="display:flex; flex-direction:column; gap:10px;">
+            <strong style="font-size:12px; display:block; margin-bottom:4px; color:var(--text2)"><i class="fas fa-box"></i> Stock & Produits</strong>
+            <label class="switch-container"><label class="switch"><input type="checkbox" id="perm_canManageCategories"><span class="slider round"></span></label><span class="switch-label">Catégories</span></label>
+            <label class="switch-container"><label class="switch"><input type="checkbox" id="perm_canConfigureProducts"><span class="slider round"></span></label><span class="switch-label">Fiches Produits</span></label>
+            <label class="switch-container"><label class="switch"><input type="checkbox" id="perm_canEditStock"><span class="slider round"></span></label><span class="switch-label">Ajuster Stock</span></label>
+            
+            <strong style="font-size:12px; display:block; margin-top:5px; margin-bottom:4px; color:var(--text2)"><i class="fas fa-chart-line"></i> Statistiques</strong>
+            <label class="switch-container"><label class="switch"><input type="checkbox" id="perm_canSeeDashboard"><span class="slider round"></span></label><span class="switch-label">Tableau de bord</span></label>
+            <label class="switch-container"><label class="switch"><input type="checkbox" id="perm_canSeeReports"><span class="slider round"></span></label><span class="switch-label">Rapports Globaux</span></label>
+            <label class="switch-container"><label class="switch"><input type="checkbox" id="perm_canSeeProfit"><span class="slider round"></span></label><span class="switch-label">Voir Bénéfices</span></label>
+          </div>
+        </div>
+
+        <div style="margin-top:20px; border-top:1px solid var(--border); padding-top:15px; display:flex; flex-direction:column; gap:10px;">
+          <strong style="font-size:12px; display:block; margin-bottom:4px; color:var(--danger)"><i class="fas fa-shield-alt"></i> Sécurité Critique</strong>
+          <label class="switch-container"><label class="switch"><input type="checkbox" id="perm_canEditHistory"><span class="slider round"></span></label><span class="switch-label" style="color:var(--danger)">Modifier l'historique</span></label>
+          <label class="switch-container"><label class="switch"><input type="checkbox" id="perm_canDeleteHistory"><span class="slider round"></span></label><span class="switch-label" style="color:var(--danger)">Supprimer l'historique</span></label>
+        </div>
+      </div>
+
+    </div>
+    <div class="modal-footer">
+      <button class="btn btn-outline" onclick="closeModal('userModal')">Annuler</button>
+      <button class="btn btn-primary" onclick="saveUser()"><i class="fas fa-save"></i> Enregistrer l'utilisateur</button>
+    </div>
+  </div>
+</div>
+
+<!-- Modal Catalogue Produits -->
+<div class="modal-overlay" id="catalogModal">
+  <div class="modal" style="max-width:480px;">
+    <div class="modal-header">
+      <h2><i class="fas fa-images"></i> Catalogue Produits</h2>
+      <button class="modal-close" onclick="closeModal('catalogModal')"><i class="fas fa-times"></i></button>
+    </div>
+    <div class="modal-body">
+      <p style="margin-bottom:15px; font-size:14px; color:var(--text2);">Sélectionnez les produits à inclure dans le catalogue.</p>
+      
+      <div class="form-group" style="margin-bottom:15px;">
+        <label><input type="radio" name="catalogExportType" value="all" checked onchange="toggleCatalogExportType()"> Tout le catalogue complet</label>
+      </div>
+      <div class="form-group" style="margin-bottom:15px;">
+        <label><input type="radio" name="catalogExportType" value="category" onchange="toggleCatalogExportType()"> Par catégories cibles (plusieurs choix possibles)</label>
+        <div id="catalogCatCheckboxes" style="display:none; margin-top:8px; border:1px solid var(--border); border-radius:6px; padding:10px; max-height:150px; overflow-y:auto; background:var(--bg-alt);">
+            <!-- Checkboxes générées dynamiquement -->
+        </div>
+      </div>
+      <div class="form-group" style="margin-bottom:15px;">
+        <label><input type="radio" name="catalogExportType" value="manual" onchange="toggleCatalogExportType()"> Sélection manuelle des produits</label>
+        
+        <div id="catalogManualSelection" style="display:none; max-height:200px; overflow-y:auto; border:1px solid var(--border); border-radius:6px; padding:10px; margin-top:8px; background:var(--bg-alt);">
+          <!-- Checkboxes générées dynamiquement -->
+        </div>
+      </div>
+      
+    </div>
+    <div class="modal-footer" style="display:flex; justify-content:space-between; gap:10px;">
+      <button class="btn btn-outline" onclick="closeModal('catalogModal')">Annuler</button>
+      <div style="display:flex; gap:10px;">
+        <button class="btn btn-outline" onclick="printCatalog()"><i class="fas fa-print"></i> Imprimer</button>
+        <button class="btn" style="background:#25D366; color:white; border:none;" onclick="exportAndShareCatalog()"><i class="fab fa-whatsapp"></i> WhatsApp</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Modal Options Impression Produit - Retiré au profit de l'aperçu direct -->
+
+<!-- Modal Aperçu Unifié Produit -->
+<div class="modal-overlay" id="productCardPreviewModal">
+  <div class="modal modal-large" style="max-width:850px;">
+    <div class="modal-header">
+      <h2><i class="fas fa-eye"></i> Aperçu de la fiche</h2>
+      <button class="modal-close" onclick="closeModal('productCardPreviewModal')"><i class="fas fa-times"></i></button>
+    </div>
+    <div class="modal-body" style="background:var(--bg); padding:20px; overflow:auto; max-height:80vh; text-align:center;">
+      <div id="productCardPreviewContainer" style="background:white; box-shadow:var(--shadow-lg); border-radius:4px; overflow:hidden; width:800px; min-width:800px; display:inline-block; text-align:left;">
+        <!-- Le contenu sera injecté ici -->
+      </div>
+    </div>
+    <div class="modal-footer" style="display:flex; justify-content:space-between; align-items:center; gap:15px;">
+      <div style="display:flex; align-items:center; gap:8px;">
+        <label class="switch" style="width:40px; height:20px; position:relative; display:inline-block;">
+          <input type="checkbox" id="previewIncludeBarcodeToggle" onchange="updatePreviewFromOptions()" style="opacity:0; width:0; height:0;">
+          <span class="slider round" style="position:absolute; cursor:pointer; top:0; left:0; right:0; bottom:0; background-color:#ccc; transition:.4s; border-radius:34px;"></span>
+        </label>
+        <span style="font-size:13px; font-weight:600; color:var(--text2);">Code-barres</span>
+      </div>
+      <div style="display:flex; gap:10px; flex:1; justify-content:flex-end;">
+        <button class="btn btn-outline" onclick="closeModal('productCardPreviewModal')">Fermer</button>
+        <button class="btn" style="background:#3498db; color:white; border-color:#3498db; font-weight:700;" onclick="confirmPrintProductFromPreview()">
+          <i class="fas fa-print"></i> Imprimer (PDF)
+        </button>
+        <button class="btn" style="background:#f39c12; color:white; border-color:#f39c12; font-weight:700;" onclick="confirmExportProductImageFromPreview()">
+          <i class="fas fa-image"></i> Enregistrer Image
+        </button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script src="html5-qrcode/minified/html5-qrcode.min.js"></script>
+<script src="JsBarcode/dist/JsBarcode.all.min.js"></script>
+<script src="script.js"></script>
+<!-- Sale History Modal -->
+<div class="modal-overlay" id="saleHistoryModal">
+  <div class="modal modal-large">
+    <div class="modal-header">
+      <h2><i class="fas fa-history"></i> Historique des Ventes (Lecture)</h2>
+      <button class="modal-close" onclick="closeModal('saleHistoryModal')"><i class="fas fa-times"></i></button>
+    </div>
+    <div class="modal-body">
+      <div class="search-row" style="margin-bottom:15px;">
+        <i class="fas fa-search" style="position:absolute; margin-left:10px; margin-top:10px; color:var(--text3);"></i>
+        <input type="text" id="saleHistorySearch" class="form-input" style="padding-left:30px;" placeholder="Rechercher par client ou date..." oninput="filterSaleHistory()">
+      </div>
+      <div class="table-wrapper" style="max-height: 400px; overflow-y: auto;">
+        <table class="data-table">
+          <thead>
+            <tr>
+              <th>#</th>
+              <th>Client</th>
+              <th>Total</th>
+              <th>Date</th>
+              <th>Actions</th>
+            </tr>
+          </thead>
+          <tbody id="saleHistoryBody"></tbody>
+        </table>
+      </div>
+    </div>
+    <div class="modal-footer">
+      <button class="btn btn-outline" onclick="closeModal('saleHistoryModal')">Fermer</button>
+    </div>
+  </div>
+</div>
+
+<!-- Sale Detail View Modal -->
+<div class="modal-overlay" id="saleDetailViewModal">
+  <div class="modal">
+    <div class="modal-header">
+      <h2><i class="fas fa-info-circle"></i> Détails de la Vente</h2>
+      <button class="modal-close" onclick="closeModal('saleDetailViewModal')"><i class="fas fa-times"></i></button>
+    </div>
+    <div class="modal-body">
+       <div id="saleDetailHeader" style="margin-bottom:15px; padding:10px; background:var(--surface2); border-radius:8px;"></div>
+       <div class="table-wrapper">
+         <table class="data-table">
+           <thead>
+             <tr>
+               <th>Produit</th>
+               <th>Qté</th>
+               <th>Prix Un.</th>
+               <th>Total</th>
+             </tr>
+           </thead>
+           <tbody id="saleDetailBody"></tbody>
+         </table>
+       </div>
+    </div>
+    <div class="modal-footer">
+       <button class="btn btn-primary" onclick="closeModal('saleDetailViewModal')">OK</button>
+    </div>
+  </div>
+</div>
+
+<!-- ═══ SECTION PATIENTS ═══════════════════════════════════════════ -->
+<section class="section" id="section-patients">
+  <div class="section-toolbar">
+    <div class="search-row">
+      <input type="text" id="patientSearch" placeholder="Rechercher un patient..." class="search-input" oninput="renderPatients()">
+    </div>
+  </div>
+  <div class="table-wrapper">
+    <table class="data-table">
+      <thead><tr><th>Photo</th><th>Nom</th><th>Naissance</th><th>Téléphone</th><th>Allergies</th><th>Poids / Taille</th><th>Actions</th></tr></thead>
+      <tbody id="patientsBody"></tbody>
+    </table>
+  </div>
+</section>
+
+<!-- Modal Patient -->
+<div class="modal-overlay" id="patientModal">
+  <div class="modal modal-lg">
+    <div class="modal-header">
+      <h2 id="patientModalTitle">Ajouter un patient</h2>
+      <button class="modal-close" onclick="closeModal('patientModal')"><i class="fas fa-times"></i></button>
+    </div>
+    <div class="modal-body">
+      <input type="hidden" id="patientId">
+      <!-- Photo -->
+      <div style="display:flex; flex-direction:column; align-items:center; margin-bottom:20px;">
+        <div id="patientPhotoPreview" style="width:120px; height:120px; border-radius:50%; background:var(--surface2); border:2px solid var(--border); display:flex; align-items:center; justify-content:center; overflow:hidden; margin-bottom:10px;">
+          <i class="fas fa-user-injured" style="font-size:50px; color:var(--text3);"></i>
+        </div>
+        <input type="file" id="patientPhotoInput" accept="image/*" style="display:none;" onchange="onPatientPhotoChange(event)">
+        <button class="btn btn-sm btn-outline" onclick="document.getElementById('patientPhotoInput').click()"><i class="fas fa-camera"></i> Choisir une photo</button>
+      </div>
+      <div class="form-grid">
+        <div class="form-group"><label>Nom complet *</label><input type="text" id="patientName" class="form-input" placeholder="Nom et prénom"></div>
+        <div class="form-group"><label>Date de naissance</label><input type="date" id="patientBirthDate" class="form-input"></div>
+        <div class="form-group"><label>Sexe</label>
+          <select id="patientGender" class="form-input">
+            <option value="">-- Choisir --</option>
+            <option value="M">Masculin</option>
+            <option value="F">Féminin</option>
+          </select>
+        </div>
+        <div class="form-group"><label>Téléphone</label><input type="tel" id="patientPhone" class="form-input" placeholder="Ex: 771234567"></div>
+        <div class="form-group"><label>Poids (kg)</label><input type="number" id="patientWeight" class="form-input" placeholder="Ex: 65" min="0" step="0.1"></div>
+        <div class="form-group"><label>Taille (cm)</label><input type="number" id="patientHeight" class="form-input" placeholder="Ex: 170" min="0"></div>
+        <div class="form-group full-width"><label>Allergies connues</label><textarea id="patientAllergies" class="form-input" rows="2" placeholder="Ex: Pénicilline, Aspirine, Iode..."></textarea></div>
+        <div class="form-group full-width"><label>Antécédents médicaux</label><textarea id="patientHistory" class="form-input" rows="3" placeholder="Ex: Diabétique, Hypertendu, Asthmatique..."></textarea></div>
+      </div>
+    </div>
+    <div class="modal-footer">
+      <button class="btn btn-outline" onclick="closeModal('patientModal')">Annuler</button>
+      <button class="btn btn-primary" onclick="savePatient()"><i class="fas fa-save"></i> Enregistrer</button>
+    </div>
+  </div>
+</div>
+
+</body>
+</html>

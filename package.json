@@ -1,0 +1,103 @@
+{
+  "name": "pharmacie",
+  "version": "1.0.0",
+  "description": "Logiciel de gestion pour pharmacie — produits, ventes, stock et rapports",
+  "author": "Pharmacie",
+  "license": "MIT",
+  "main": "main.js",
+  "scripts": {
+    "electron": "electron .",
+    "dist": "electron-builder --publish never",
+    "dist:win": "electron-builder --win --publish never",
+    "dist:mac": "electron-builder --mac --publish never",
+    "dist:linux": "electron-builder --linux --publish never"
+  },
+  "dependencies": {
+    "@supabase/supabase-js": "^2.102.1",
+    "archiver": "^7.0.1",
+    "docx": "^9.6.1",
+    "exceljs": "^4.4.0",
+    "firebase": "^12.11.0",
+    "node-notifier": "^10.0.1",
+    "node-thermal-printer": "^4.6.0",
+    "puppeteer-core": "^24.40.0",
+    "sql.js": "^1.12.0"
+  },
+  "devDependencies": {
+    "electron": "^30.0.0",
+    "electron-builder": "^24.0.0"
+  },
+  "build": {
+    "appId": "com.pharmacie.app",
+    "productName": "Pharmacie",
+    "copyright": "Copyright © 2024 Pharmacie",
+    "files": [
+      "index.html",
+      "style.css",
+      "script.js",
+      "main.js",
+      "preload.js",
+      "database.js",
+      "assets/**/*",
+      "node_modules/**/*",
+      "package.json",
+      "fontawesome/**/*",
+      "echarts/**/*",
+      "JsBarcode/**/*",
+      "html5-qrcode/**/*",
+      "exceljs/**/*"
+    ],
+    "directories": {
+      "output": "dist"
+    },
+    "win": {
+      "target": [
+        {
+          "target": "nsis",
+          "arch": [
+            "x64"
+          ]
+        }
+      ],
+      "icon": "assets/icon.ico"
+    },
+    "nsis": {
+      "oneClick": false,
+      "allowToChangeInstallationDirectory": true,
+      "createDesktopShortcut": true,
+      "createStartMenuShortcut": true,
+      "shortcutName": "Pharmacie"
+    },
+    "mac": {
+      "target": [
+        {
+          "target": "dmg",
+          "arch": [
+            "x64",
+            "arm64"
+          ]
+        }
+      ],
+      "icon": "assets/icon.icns",
+      "category": "public.app-category.business"
+    },
+    "linux": {
+      "target": [
+        {
+          "target": "AppImage",
+          "arch": [
+            "x64"
+          ]
+        },
+        {
+          "target": "deb",
+          "arch": [
+            "x64"
+          ]
+        }
+      ],
+      "icon": "assets/icon.png",
+      "category": "Office"
+    }
+  }
+}

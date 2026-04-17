@@ -1,0 +1,287 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Boutique en ligne</title>
+  <style>
+    /* Design Glassmorphism Moderne */
+    :root {
+      --bg: #111210;
+      --surface: #1e1f1b;
+      --accent: #5ab04e;
+      --text: #eceae2;
+      --text-dim: #a8a89e;
+    }
+    body {
+      margin: 0; padding: 0;
+      font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+      background: var(--bg);
+      color: var(--text);
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+    }
+    header {
+      width: 100%;
+      padding: 20px;
+      background: rgba(30, 31, 27, 0.8);
+      backdrop-filter: blur(10px);
+      position: sticky;
+      top: 0;
+      z-index: 100;
+      display: flex;
+      justify-content: space-between;
+      box-sizing: border-box;
+      border-bottom: 1px solid rgba(255,255,255,0.05);
+    }
+    header h1 { margin: 0; font-size: 1.5rem; color: var(--accent); }
+    .cart-btn {
+      background: var(--accent);
+      color: white;
+      border: none;
+      padding: 10px 20px;
+      border-radius: 20px;
+      cursor: pointer;
+      font-weight: bold;
+    }
+    .products-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(250px, 1fr));
+      gap: 20px;
+      padding: 20px;
+      width: 100%;
+      max-width: 1200px;
+      box-sizing: border-box;
+    }
+    .product-card {
+      background: var(--surface);
+      border-radius: 15px;
+      overflow: hidden;
+      border: 1px solid rgba(255,255,255,0.05);
+      transition: transform 0.2s;
+    }
+    .product-card:hover { transform: translateY(-5px); }
+    .product-image {
+      width: 100%;
+      height: 200px;
+      object-fit: cover;
+      background: #252620;
+    }
+    .product-info { padding: 15px; }
+    .product-title { margin: 0 0 10px 0; font-size: 1.2rem; }
+    .product-price { color: var(--accent); font-weight: bold; font-size: 1.1rem; }
+    .add-to-cart {
+      width: 100%;
+      padding: 10px;
+      background: rgba(90, 176, 78, 0.1);
+      color: var(--accent);
+      border: 1px solid var(--accent);
+      border-radius: 8px;
+      cursor: pointer;
+      margin-top: 15px;
+      transition: 0.2s;
+    }
+    .add-to-cart:hover { background: var(--accent); color: white; }
+
+    /* Modal Panier */
+    #cart-modal {
+      display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+      background: rgba(0,0,0,0.8); backdrop-filter: blur(5px);
+      z-index: 200; justify-content: center; align-items: center;
+    }
+    .modal-content {
+      background: var(--surface); padding: 30px; border-radius: 20px;
+      width: 90%; max-width: 500px;
+      border: 1px solid rgba(255,255,255,0.1);
+    }
+    .checkout-form input {
+      width: 100%; padding: 12px; margin-bottom: 15px;
+      background: #111; color: white; border: 1px solid #333;
+      border-radius: 8px; box-sizing: border-box;
+    }
+    .btn-submit {
+      width: 100%; padding: 15px; background: var(--accent); color: white;
+      border: none; border-radius: 8px; font-size: 1.1rem; cursor: pointer;
+      font-weight: bold;
+    }
+    #cart-items-list { list-style: none; padding: 0; margin-bottom: 20px;}
+    #cart-items-list li { display: flex; justify-content: space-between; margin-bottom: 10px; border-bottom: 1px solid #333; padding-bottom: 10px;}
+  </style>
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+</head>
+<body>
+
+<header>
+  <h1>Ma Boutique</h1>
+  <button class="cart-btn" onclick="openCart()">🛒 Panier (<span id="cart-count">0</span>)</button>
+</header>
+
+<div class="products-grid" id="products-container">
+  <p style="text-align:center; width:100%;">Chargement des produits...</p>
+</div>
+
+<!-- Modal Panier -->
+    </div>
+  </div>
+</div> <!-- Fin correcte du modal -->
+
+<div id="debug-log" style="color: yellow; background: #222; padding: 10px; margin-bottom: 20px; font-family: monospace; white-space: pre-wrap; font-size: 12px; border: 1px solid #444;">Diagnostic de connexion...</div>
+
+<script>
+  const logEl = document.getElementById('debug-log');
+  function logDebug(msg) {
+    if(logEl) logEl.innerHTML += '\n' + msg;
+    console.log(msg);
+  }
+
+  window.onerror = function(msg, url, line) {
+    logDebug(`❌ ERREUR CRITIQUE: ${msg} (Ligne ${line})`);
+  };
+  
+  logDebug("1. Initialisation du script...");
+  
+  const SUPABASE_URL = 'https://pxxjgolyldhcpknlxmvm.supabase.co';
+  const SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InB4eGpnb2x5bGRoY3Brbmx4bXZtIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzU2NTczODUsImV4cCI6MjA5MTIzMzM4NX0._adXWHXIMBjQqfWaloKmw2ELd5dmWZvh5ntahFmSwcA';
+  
+  logDebug("2. Librairie Supabase : " + (typeof window.supabase !== 'undefined' ? "✅ Chargée" : "❌ NON CHARGÉE"));
+  
+  let supabase;
+  let products = [];
+  let cart = [];
+
+  async function testConnection() {
+    logDebug("3. Test de ping vers Supabase...");
+    try {
+      const resp = await fetch(SUPABASE_URL, { method: 'GET', mode: 'no-cors' });
+      logDebug("4. Ping réseau : ✅ Répondu (Le serveur est joignable)");
+      return true;
+    } catch (e) {
+      logDebug("4. Ping réseau : ❌ ÉCHEC (Problème de connexion ou pare-feu) - " + e.message);
+      return false;
+    }
+  }
+
+  async function loadProducts() {
+    await testConnection();
+    logDebug("5. Tentative de récupération des produits...");
+    
+    try {
+      supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY, { 
+        auth: { persistSession: false },
+        global: { fetch: (...args) => fetch(args[0], { ...args[1], cache: 'no-store' }) }
+      });
+
+      const { data, error } = await supabase.from('products').select('*');
+      
+      if (error) { 
+        logDebug("6. Erreur API Supabase : " + error.message);
+        document.getElementById('products-container').innerHTML = `<p style="color:red;">Erreur serveur: ${error.message}</p>`; 
+        return; 
+      }
+      
+      logDebug(`6. Succès ! ${data ? data.length : 0} produits importés.`);
+      products = data || [];
+      renderProducts();
+    } catch (err) {
+      logDebug("6. ❌ BLOCAGE NAVIGATEUR : " + err.message);
+      document.getElementById('products-container').innerHTML = `
+        <div style="background:rgba(255,0,0,0.1); padding:20px; border-radius:10px; border:1px solid red; color:white;">
+          <h3 style="color:red; margin-top:0;">Le navigateur bloque la connexion</h3>
+          <p>Détail: ${err.message}</p>
+          <p><b>Conseil :</b> Essayez d'ouvrir ce fichier avec un autre navigateur (Firefox est souvent plus souple pour les fichiers locaux) ou vérifiez votre connexion internet.</p>
+        </div>
+      `;
+    }
+  }
+
+  function renderProducts() {
+    const container = document.getElementById('products-container');
+    container.innerHTML = '';
+    if(products.length === 0) {
+      container.innerHTML = '<p>Aucun produit synchronisé. Utilisez le bouton Sync dans GestPro.</p>';
+      return;
+    }
+    try {
+      products.forEach(p => {
+        const defaultImg = 'data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHdpZHRoPSIxMDAiIGhlaWdodD0iMTAwIj48cmVjdCB3aWR0aD0iMTAwJSIgaGVpZ2h0PSIxMDAlIiBmaWxsPSIjMjIyIi8+PC9zdmc+';
+        const imgSrc = (p.image && p.image.length > 10) ? p.image : defaultImg;
+
+        container.innerHTML += `
+          <div class="product-card">
+            <img src="${imgSrc}" class="product-image" alt="${p.name}">
+            <div class="product-info">
+              <h3 class="product-title">${p.name}</h3>
+              <div class="product-price">${p.price} FCFA</div>
+              <p style="font-size: 0.9em; color:#888">${p.description || ''}</p>
+              <button class="add-to-cart" onclick="addToCart('${p.id}')">Ajouter au panier</button>
+            </div>
+          </div>
+        `;
+      });
+      logDebug("7. ✅ Affichage des produits terminé.");
+    } catch (err) {
+      logDebug("❌ Erreur de rendu: " + err.message);
+    }
+  }
+
+  function addToCart(id) {
+    const p = products.find(x => x.id === id);
+    if (!p) return;
+    const existing = cart.find(x => x.id === id);
+    if (existing) existing.qty += 1;
+    else cart.push({ ...p, qty: 1 });
+    updateCartCount();
+    alert(p.name + " ajouté au panier !");
+  }
+
+  function updateCartCount() {
+    document.getElementById('cart-count').innerText = cart.reduce((acc, item) => acc + item.qty, 0);
+  }
+
+  function openCart() {
+    const list = document.getElementById('cart-items-list');
+    list.innerHTML = '';
+    let total = 0;
+    cart.forEach(item => {
+      total += item.price * item.qty;
+      list.innerHTML += `<li><span>${item.qty}x ${item.name}</span> <span>${item.qty * item.price} FCFA</span></li>`;
+    });
+    document.getElementById('cart-total').innerText = total;
+    document.getElementById('cart-modal').style.display = 'flex';
+  }
+
+  function closeCart() {
+    document.getElementById('cart-modal').style.display = 'none';
+  }
+
+  async function submitOrder() {
+    if (cart.length === 0) { alert('Votre panier est vide.'); return; }
+    const prenom = document.getElementById('c-prenom').value;
+    const nom = document.getElementById('c-nom').value;
+    const tel = document.getElementById('c-tel').value;
+    const adresse = document.getElementById('c-adresse').value;
+
+    if (!prenom || !nom || !tel || !adresse) { alert("Veuillez remplir tous les champs !"); return; }
+
+    const total = cart.reduce((acc, item) => acc + (item.price * item.qty), 0);
+    const orderData = {
+      client_name: prenom + ' ' + nom,
+      client_phone: tel,
+      client_address: adresse,
+      total_amount: total,
+      items: cart.map(i => ({ id: i.id, name: i.name, qty: i.qty, price: i.price }))
+    };
+
+    const { error } = await supabase.from('web_orders').insert([orderData]);
+    if (error) alert("Erreur lors de la commande : " + error.message);
+    else {
+      alert("Commande envoyée avec succès !");
+      cart = []; updateCartCount(); closeCart();
+    }
+  }
+
+  loadProducts();
+</script>
+</body>
+</html>
